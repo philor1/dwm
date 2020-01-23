@@ -1747,12 +1747,12 @@ toggleview(const Arg *arg)
 		die("fatal: could not calloc() %u bytes \n", selmon->nmaster * sizeof(Client *));
 	}
 	Client *c;
-	size_t i;
-	for (c = nexttiled(selmon->clients), i = 0; c && i < selmon->nmaster; c = nexttiled(c->next), ++i)
-		masters[selmon->nmaster - (i + 1)] = c;
-	for (size_t i = 0; i < selmon->nmaster; ++i)
-		if (masters[i])
-			pop(masters[i]);
+	size_t j;
+	for (c = nexttiled(selmon->clients), j = 0; c && j < selmon->nmaster; c = nexttiled(c->next), ++j)
+		masters[selmon->nmaster - (j + 1)] = c;
+	for (size_t j = 0; j < selmon->nmaster; ++j)
+		if (masters[j])
+			pop(masters[j]);
 	free(masters);
 	focus(selected);
 	if (newtagset) {
