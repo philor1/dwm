@@ -1,5 +1,15 @@
 /* See LICENSE file for copyright and license details. */
 
+#define BARTABGROUPS_BORDERS 1         // 0 = disable, 1 = enable
+#define BARTABGROUPS_BOTTOMBORDER 0    // 0 = disable, 1 = enable
+#define BARTABGROUPS_FUZZPX 12         // # pixels cutoff between bartab groups to merge (e.g. max gaps px)
+#define BARTABGROUPS_FLOATINDICATOR 1  // 0 = disable, 1 = enable
+#define BARTABGROUPS_FLOATPX 5         // # pixels for float box indicator
+#define BARTABGROUPS_TAGSINDICATOR 1   // 0 = disable, 1 = enable when >1 client or view tag, 2 = enable always
+#define BARTABGROUPS_TAGSPX 5          // # pixels for tag grid boxes
+#define BARTABGROUPS_TAGSROWS 2        // # rows in tag grid
+#define BARTABGROUPS_INDICATORSPADPX 2 // # pixels from l/r to pad float/tags indicators
+
 /* appearance */
 static const unsigned int borderpx  = 1;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
@@ -12,10 +22,18 @@ static const char col_gray2[]       = "#444444";
 static const char col_gray3[]       = "#bbbbbb";
 static const char col_gray4[]       = "#eeeeee";
 static const char col_cyan[]        = "#005577";
+
+static const char col_lgray[]       = "#e8e8e8";
+static const char col_mgray[]       = "#cfcfcf";
+static const char col_dgray[]       = "#1a1a1a";
+static const char col_black[]       = "#000000";
+
 static const char *colors[][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
 	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
+	[SchemeTabInactive] = { col_black, col_mgray, col_black},
+	[SchemeTabActiveGroup] = { col_dgray, col_lgray, col_black}
 };
 
 /* tagging */
