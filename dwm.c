@@ -1182,7 +1182,7 @@ monocle(Monitor *m)
 	if (n > 0) /* override layout symbol */
 		snprintf(m->ltsymbol, sizeof m->ltsymbol, "[%d]", n);
 	for (c = nexttiled(m->clients); c; c = nexttiled(c->next))
-		if (abs(m->showbar) == 0)
+		if (abs(m->showbar) + abs(m->showebar) == 0)
 		resize(c, m->wx - c->bw, m->wy - c->bw, m->ww, m->wh, 0);
 		else
 		resize(c, m->wx - c->bw, m->wy, m->ww, m->wh - c->bw, 0);
