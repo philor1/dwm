@@ -781,7 +781,7 @@ void drawtaggrid(Monitor *m, int *x_pos, unsigned int occ)
 
     /* Firstly we will fill the borders of squares */
 
-    XSetForeground(drw->dpy, drw->gc, scheme[SchemeNorm][ColBorder].pixel);
+    XSetForeground(drw->dpy, drw->gc, scheme[SchemeNorm][ColBg].pixel);
     XFillRectangle(dpy, drw->drawable, drw->gc, x, y, h*columns + 1, bh);
 
     /* We will draw LENGTH(tags) squares in tagraws raws. */
@@ -798,7 +798,7 @@ void drawtaggrid(Monitor *m, int *x_pos, unsigned int occ)
             /* Mark square if tag has client */
             if (occ & 1 << i) {
                 XSetForeground(drw->dpy, drw->gc, !invert ? scheme[SchemeSel][ColFg].pixel :
-                                scheme[SchemeNorm][ColBg].pixel);
+                                scheme[SchemeNorm][ColBorder].pixel);
                 XFillRectangle(dpy, drw->drawable, drw->gc, x + 1, y + 1,
                                h / 2, h / 2);
             }
