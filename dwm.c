@@ -289,8 +289,7 @@ static void zoom(const Arg *arg);
 
 /* variables */
 static const char broken[] = "broken";
-static char ustext[256];
-static char dstext[256];
+static char stext[256];
 static int screen;
 static int sw, sh;           /* X display screen geometry width, height */
 static int bh, blw = 0;      /* bar geometry */
@@ -513,10 +512,10 @@ buttonpress(XEvent *e)
 			arg.ui = 1 << i;
 		} else if (ev->x < x + blw)
 			click = ClkLtSymbol;
-		else if (ev->x > selmon->ww - TEXTW(ustext) - getsystraywidth())
-			click = ClkStatusText;
 		else
 			click = ClkWinTitle;
+	} else if (ev->window == selmon->ebarwin) {
+			click = ClkStatusText;
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
 		restack(selmon);
@@ -876,13 +875,6 @@ drawbar(Monitor *m)
 	if (showsystray && m == systraytomon(m))
 		stw = getsystraywidth();
 
-	/* draw status first so it can be overdrawn by tags later */
-	if (m == selmon) { /* status is only drawn on selected monitor */
-		drw_setscheme(drw, scheme[SchemeNorm]);
-		tw = TEXTW(ustext) - lrpad + 2; /* 2px right padding */
-		drw_text(drw, m->ww - tw - stw, 0, tw, bh, 0, ustext, 0);
-	}
-
 	for (c = m->clients; c; c = c->next) {
 		occ |= c->tags;
 		if (c->isurgent)
@@ -916,7 +908,7 @@ drawbar(Monitor *m)
 	}
 	drw_map(drw, m->barwin, 0, 0, m->ww - stw, bh);
 	drw_setscheme(drw, scheme[SchemeNorm]);
-	drw_text(drw, 0, 0, m->ww, bh, 0, dstext, 0);
+	drw_text(drw, 0, 0, m->ww, bh, 0, stext, 0);
 	drw_map(drw, m->ebarwin, 0, 0, m->ww, bh);
 }
 
@@ -2609,20 +2601,8 @@ updatesizehints(Client *c)
 void
 updatestatus(void)
 {
-	char text[512];
-	if(!gettextprop(root, XA_WM_NAME, text, sizeof(text))) {
-		strcpy(ustext, "dwm-"VERSION);
-		dstext[0] = '\0';
-	}
-	else {
-		char *e = strchr(text, ';');
-		if(e) {
-			*e = '\0'; e++;
-			strncpy(dstext, e, sizeof(dstext)-1);
-		}
-		else
-			dstext[0] = '\0';
-		strncpy(ustext, text, sizeof(ustext)-1);
+	if(!gettextprop(root, XA_WM_NAME, stext, sizeof(stext))) {
+		strcpy(stext, "dwm-"VERSION);
 	}
 	drawbar(selmon);
 	if (showsystray)
