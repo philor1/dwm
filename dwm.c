@@ -294,6 +294,7 @@ struct Pertag {
 	unsigned int sellts[LENGTH(tags) + 1]; /* selected layouts */
 	const Layout *ltidxs[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes  */
 	int showbars[LENGTH(tags) + 1]; /* display bar for the current tag */
+	int showebars[LENGTH(tags) + 1]; /* display ebar for the current tag */
 };
 
 /* compile-time check if all tags fit into an unsigned int bit array. */
@@ -691,6 +692,7 @@ createmon(void)
 		m->pertag->ltidxs[i][1] = m->lt[1];
 		m->pertag->sellts[i] = m->sellt;
 		m->pertag->showbars[i] = m->showbar;
+		m->pertag->showebars[i] = m->showebar;
 	}
 	return m;
 }
@@ -1928,7 +1930,7 @@ togglebar(const Arg *arg)
 void
 toggleebar(const Arg *arg)
 {
-    selmon->showebar = !selmon->showebar;
+	selmon->showebar = selmon->pertag->showebars[selmon->pertag->curtag] = !selmon->showebar;
     updatebarpos(selmon);
     XMoveResizeWindow(dpy, selmon->ebarwin, selmon->wx, selmon->eby, selmon->ww, bh);
     arrange(selmon);
@@ -2013,6 +2015,8 @@ toggleview(const Arg *arg)
 
 		if (selmon->showbar != selmon->pertag->showbars[selmon->pertag->curtag])
 			togglebar(NULL);
+		if (selmon->showebar != selmon->pertag->showebars[selmon->pertag->curtag])
+			toggleebar(NULL);
 
 		focus(NULL);
 		arrange(selmon);
@@ -2367,6 +2371,8 @@ view(const Arg *arg)
 	selmon->ltaxis[2] = selmon->pertag->ltaxes[selmon->pertag->curtag][2];
 	if (selmon->showbar != selmon->pertag->showbars[selmon->pertag->curtag])
 		togglebar(NULL);
+	if (selmon->showebar != selmon->pertag->showebars[selmon->pertag->curtag])
+		toggleebar(NULL);
 	focus(NULL);
 	arrange(selmon);
 }
