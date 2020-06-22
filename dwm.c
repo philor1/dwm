@@ -93,6 +93,7 @@ struct Client {
 	int bw, oldbw;
 	unsigned int tags;
 	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
+	int floatx, floaty, floatw, floath;
 	int floatborderpx;
 	Client *next;
 	Client *snext;
@@ -304,12 +305,10 @@ applyrules(Client *c)
 			c->isfloating = r->isfloating;
 			c->tags |= r->tags;
 			c->floatborderpx = r->floatborderpx;
-			if (r->isfloating) {
-				c->x = r->floatx;
-				c->y = r->floaty;
-				c->w = r->floatw;
-				c->h = r->floath;
-			}
+			c->floatx = r->floatx;
+			c->floaty = r->floaty;
+			c->floatw = r->floatw;
+			c->floath = r->floath;
 			for (m = mons; m && m->num != r->monitor; m = m->next);
 			if (m)
 				c->mon = m;
@@ -1035,6 +1034,8 @@ manage(Window w, XWindowAttributes *wa)
 	c = ecalloc(1, sizeof(Client));
 	c->win = w;
 	/* geometry */
+	c->floatborderpx = -1;
+	c->floatx = c->floaty = c->floatw = c->floath = -11;
 	c->x = c->oldx = wa->x;
 	c->y = c->oldy = wa->y;
 	c->w = c->oldw = wa->width;
@@ -1050,17 +1051,50 @@ manage(Window w, XWindowAttributes *wa)
 		applyrules(c);
 	}
 
-	if (c->x + WIDTH(c) > c->mon->mx + c->mon->mw)
-		c->x = c->mon->mx + c->mon->mw - WIDTH(c);
-	if (c->y + HEIGHT(c) > c->mon->my + c->mon->mh)
-		c->y = c->mon->my + c->mon->mh - HEIGHT(c);
-	c->x = MAX(c->x, c->mon->mx);
-	/* only fix client y-offset, if the client center might cover the bar */
-	c->y = MAX(c->y, ((c->mon->by == c->mon->my) && (c->x + (c->w / 2) >= c->mon->wx)
-		&& (c->x + (c->w / 2) < c->mon->wx + c->mon->ww)) ? bh : c->mon->my);
+	if (c->x + WIDTH(c) + 2 * borderpx > c->mon->wx + c->mon->ww)
+		c->x = c->mon->wx + c->mon->ww - WIDTH(c) - 2 * borderpx;
+	if (c->y + HEIGHT(c) + 2 * borderpx > c->mon->wy + c->mon->wh)
+		c->y = c->mon->wy + c->mon->wh - HEIGHT(c) - 2 * borderpx;
+	c->x = MAX(c->x, c->mon->wx);
+	c->y = MAX(c->y, c->mon->wy);
+	if (c->h > c->mon->wh - 2 * borderpx)
+		c->h = c->mon->wh - 2 * borderpx;
+	if (c->w > c->mon->ww - 2 * borderpx)
+		c->w = c->mon->ww - 2 * borderpx;
+	if (c->y < c->mon->wy)
+		c->y = c->mon->wy;
 	c->bw = borderpx;
 
-	wc.border_width = c->bw;
+	/* float-dimensions setup */
+	if (c->floatw > bh)
+		c->w = c->floatw;
+	else if (c->floatw < 0 && c->floatw > -10)
+		c->w = (-1 * c->floatw - 1) * c->mon->ww / 8;
+
+	if (c->floath > bh)
+		c->h = c->floath;
+	else if (c->floath < 0 && c->floath > -10)
+		c->h = (-1 * c->floath - 1) * (c->mon->wh) / 8;
+
+	if (c->floatx >= 0)
+		c->x = c->mon->mx + c->floatx;
+	else if (c->floatx < 0 && c->floatx > -10)
+		c->x = c->mon->wx + (-1 * c->floatx - 1) * c->mon->ww / 8;
+	else if (c->floatx == -10)
+		c->x = c->mon->wx + (c->mon->mw - c->w) / 2;
+
+	if (c->floaty >= 0)
+		c->y = c->mon->my + c->floaty;
+	else if (c->floaty < 0 && c->floaty > -10)
+		c->y = c->mon->wy + (-1 * c->floaty - 1) * c->mon->wh / 8;
+	else if (c->floaty == -10)
+		c->y = c->mon->wy + (c->mon->wh - c->h) / 2;
+
+	if (c->isfloating && c->floatborderpx >= 0)
+		wc.border_width = c->floatborderpx;
+	else
+		wc.border_width = c->bw;
+
 	XConfigureWindow(dpy, w, CWBorderWidth, &wc);
 	XSetWindowBorder(dpy, w, scheme[SchemeNorm][ColBorder].pixel);
 	configure(c); /* propagates border_width, if size doesn't change */
@@ -1292,7 +1326,7 @@ resizeclient(Client *c, int x, int y, int w, int h)
 	c->oldy = c->y; c->y = wc.y = y;
 	c->oldw = c->w; c->w = wc.width = w;
 	c->oldh = c->h; c->h = wc.height = h;
-	if (c->isfloating)
+	if (c->isfloating && c->floatborderpx >= 0)
 		wc.border_width = c->floatborderpx;
 	else
 		wc.border_width = c->bw;
