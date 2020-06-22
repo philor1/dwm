@@ -78,7 +78,26 @@ static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont,
 static const char *termcmd[]  = { "st", NULL };
 
 /* commands spawned when clicking statusbar, the mouse button pressed is exported as BUTTON */
-static char *statuscmds[] = { "notify-send Mouse$BUTTON" };
+static char *statuscmds[][5] = {
+/* 	button1 					button2 					button3 					button4 					button5*/
+
+/* VOL */ {
+	"st -e alsamixer", 			"pavucontrol", 				"amixer set Master toggle; pkill -RTMIN+11 dwmblocks", "/usr/bin/amixer -q sset Master 5%+; pkill -RTMIN+11 dwmblocks", "/usr/bin/amixer -q sset Master 5%-; pkill -RTMIN+11 dwmblocks" },
+/* BKL */
+
+/* TIME */
+
+/* CPU */
+
+/* RAM */
+
+/* WIFI */
+
+/* BAT */
+
+/* END */ {
+	NULL, 						NULL, 						NULL, 						NULL, 						NULL }
+};
 static char *statuscmd[] = { "/bin/sh", "-c", NULL, NULL };
 
 static Key keys[] = {
@@ -141,6 +160,8 @@ static Button buttons[] = {
 	{ ClkStatusText,        0,              Button1,        spawn,          {.v = statuscmd } },
 	{ ClkStatusText,        0,              Button2,        spawn,          {.v = statuscmd } },
 	{ ClkStatusText,        0,              Button3,        spawn,          {.v = statuscmd } },
+	{ ClkStatusText,        0,              Button4,        spawn,          {.v = statuscmd } },
+	{ ClkStatusText,        0,              Button5,        spawn,          {.v = statuscmd } },
 	{ ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} },
 	{ ClkClientWin,         MODKEY,         Button2,        togglefloating, {0} },
 	{ ClkClientWin,         MODKEY,         Button3,        resizemouse,    {0} },

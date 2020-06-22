@@ -292,9 +292,9 @@ static void zoom(const Arg *arg);
 /* variables */
 static const char broken[] = "broken";
 static char stext[1024];
-static char rawstext[256];
+static char rawstext[1024];
 static int statuscmdn;
-static char lastbutton[] = "-";
+static int lastbutton;
 static int screen;
 static int sw, sh;           /* X display screen geometry width, height */
 static int bh, blw = 0;      /* bar geometry */
@@ -499,7 +499,7 @@ buttonpress(XEvent *e)
 	Client *c;
 	Monitor *m;
 	XButtonPressedEvent *ev = &e->xbutton;
-	*lastbutton = '0' + ev->button;
+	lastbutton = ev->button;
 
 	click = ClkRootWin;
 	/* focus monitor if necessary */
@@ -508,7 +508,62 @@ buttonpress(XEvent *e)
 		selmon = m;
 		focus(NULL);
 	}
-	if (ev->window == selmon->barwin) {
+	if (ev->window == selmon->ebarwin) {
+		click = ClkStatusText;
+		char *text = rawstext;
+		int i = -1;
+		x = 0;
+		char ch;
+		short isCode = 0;
+		statuscmdn = 0;
+		while (text[++i]) {
+			if (!isCode) {
+				if (text[i] == '^') {
+					isCode = 1;
+					ch = text[i];
+					text[i] = '\0';
+					x += TEXTW(text) - lrpad;
+					text[i] = ch;
+					text += i+1;
+					i = -1;
+					if (x >= ev->x) break;
+					if (ch <= LENGTH(statuscmds)) statuscmdn = ch - 1;
+			    } else
+					if ((unsigned char)text[i] < ' ') {
+						ch = text[i];
+						text[i] = '\0';
+						x += TEXTW(text) - lrpad;
+						text[i] = ch;
+						text += i+1;
+						i = -1;
+						if (x >= ev->x) break;
+						if (ch <= LENGTH(statuscmds)) statuscmdn = ch - 1;
+			        }
+			} else {
+				if (text[i] == '^') {
+					isCode = 0;
+					ch = text[i];
+					text[i] = '\0';
+					x += TEXTW(text) - lrpad;
+					text[i] = ch;
+					text += i+1;
+					i = -1;
+					if (x >= ev->x) break;
+					if (ch <= LENGTH(statuscmds)) statuscmdn = ch - 1;
+			    } else {
+			        isCode = 1;
+					ch = text[i];
+					text[i] = '\0';
+					x += TEXTW(text) - lrpad;
+					text[i] = ch;
+					text += i+1;
+					i = -1;
+					if (x >= ev->x) break;
+					if (ch <= LENGTH(statuscmds)) statuscmdn = ch - 1;
+			    }
+			}
+		}
+    } else if (ev->window == selmon->barwin) {
 		i = x = 0;
 		do
 			x += TEXTW(tags[i]);
@@ -518,26 +573,7 @@ buttonpress(XEvent *e)
 			arg.ui = 1 << i;
 		} else if (ev->x < x + blw)
 			click = ClkLtSymbol;
-		else if (ev->x > selmon->ww)
-			click = ClkStatusText;
-
-			char *text = rawstext;
-			int i = -1;
-			char ch;
-			statuscmdn = 0;
-			while (text[++i]) {
-				if ((unsigned char)text[i] < ' ') {
-					ch = text[i];
-					text[i] = '\0';
-					x += TEXTW(text) - lrpad;
-					text[i] = ch;
-					text += i+1;
-					i = -1;
-					if (x >= ev->x) break;
-					if (ch <= LENGTH(statuscmds)) statuscmdn = ch - 1;
-				}
-			}
-		} else
+		else
 			click = ClkWinTitle;
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
@@ -2109,8 +2145,7 @@ spawn(const Arg *arg)
 	if (arg->v == dmenucmd)
 		dmenumon[0] = '0' + selmon->num;
 	else if (arg->v == statuscmd) {
-		statuscmd[2] = statuscmds[statuscmdn];
-		setenv("BUTTON", lastbutton, 1);
+		statuscmd[2] = statuscmds[statuscmdn][lastbutton-1];
 	}
 	if (fork() == 0) {
 		if (dpy)
