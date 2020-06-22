@@ -167,6 +167,7 @@ static void configure(Client *c);
 static void configurenotify(XEvent *e);
 static void configurerequest(XEvent *e);
 static Monitor *createmon(void);
+static void demoncleaner(const Arg *arg);
 static void destroynotify(XEvent *e);
 static void detach(Client *c);
 static void detachstack(Client *c);
@@ -700,6 +701,17 @@ createmon(void)
 		m->pertag->showebars[i] = m->showebar;
 	}
 	return m;
+}
+
+void
+demoncleaner(const Arg *arg)
+{
+	toggleebar(0);
+	togglebar(0);
+	arrange(selmon);
+	togglebar(0);
+	toggleebar(0);
+	arrange(selmon);
 }
 
 void
@@ -1588,6 +1600,7 @@ setfullscreen(Client *c, int fullscreen)
 			PropModeReplace, (unsigned char*)0, 0);
 		c->isfullscreen = 0;
 	}
+    demoncleaner(0);
 }
 
 void
