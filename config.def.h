@@ -1,7 +1,8 @@
 /* See LICENSE file for copyright and license details. */
 
 /* appearance */
-static const unsigned int borderpx  = 1;        /* border pixel of windows */
+static const unsigned int gappx     = 4;        /* gaps between windows */
+static const unsigned int borderpx  = 2;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
@@ -34,7 +35,7 @@ static const Rule rules[] = {
 /* layout(s) */
 static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
 static const int nmaster     = 1;    /* number of clients in master area */
-static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
+static const int resizehints = 0;    /* 1 means respect size hints in tiled resizals */
 static const int  layoutaxis[] = {
 	1,    /* layout axis: 1 = x, 2 = y; negative values mirror the layout */
 	2,    /* master axis: 1 = x (left to right), 2 = y (top to bottom), 3 = z (monocle) */
@@ -92,9 +93,12 @@ static Key keys[] = {
 	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
-	{ MODKEY|ShiftMask,             XK_Tab,    rotatelayoutaxis, {.i = 0} },    /* 0 = layout axis */
-	{ MODKEY|ControlMask,           XK_Tab,    rotatelayoutaxis, {.i = 1} },    /* 1 = master axis */
-	{ MODKEY|ControlMask|ShiftMask, XK_Tab,    rotatelayoutaxis, {.i = 2} },    /* 2 = stack axis */
+	{ MODKEY,                       XK_z,      setgaps,        {.i = -2 } },
+	{ MODKEY,                       XK_u,      setgaps,        {.i = +2 } },
+	{ MODKEY|ShiftMask,             XK_u,      setgaps,        {.i = 0  } },
+	{ MODKEY|ShiftMask,             XK_t,      rotatelayoutaxis, {.i = 0} },    /* 0 = layout axis */
+	{ MODKEY|ControlMask,           XK_t,      rotatelayoutaxis, {.i = 1} },    /* 1 = master axis */
+	{ MODKEY|ControlMask|ShiftMask, XK_t,      rotatelayoutaxis, {.i = 2} },    /* 2 = stack axis */
 	{ MODKEY|ControlMask,           XK_Return, mirrorlayout,     {0} },
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
