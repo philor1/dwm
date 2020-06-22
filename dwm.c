@@ -1844,41 +1844,42 @@ tile(Monitor *m)
 		w2 = w2 * (1 - m->mfact) + 2 * borderpx;
 		x1 += (m->ltaxis[0] < 0) ? w2 : (0 - borderpx);
 		x2 += (m->ltaxis[0] < 0) ? 0 : (w1 - borderpx);
-		if(abs(m->showbar) == 0) {
+		if(abs(m->showbar) + abs(m->showebar) == 0) {
 			y1 -= borderpx;
 			y2 -= borderpx;
 			h1 += 2 * borderpx + 1;
 			h2 += 2 * borderpx + 1;
-		} else if(abs(m->showbar) == 1) {
-			y1 -= 0;
-			y2 -= 0;
+		} else {
+			y1 -= m->topbar ? 0 : borderpx;
+			y2 -= m->topbar ? 0 : borderpx;
 			h1 += borderpx + 1;
 			h2 += borderpx + 1; }
-	} else if(n <= m->nmaster) {
-		w1 += 2*borderpx;
-		x1 -= borderpx;
-		if(abs(m->showbar) == 0) {
-			y1 -= borderpx;
-			h1 += 2 * borderpx;
-		} else if(abs(m->showbar) == 1) {
-			y1 -= 0;
-			h1 += borderpx; }
 	} else if(abs(m->ltaxis[0]) == 2 && n > m->nmaster) {
-		if(abs(m->showbar) == 0) {
-			h1 = h1 * m->mfact;
-			h2 = h2 * (1 - m->mfact) + 2 * borderpx;
-			y1 += (m->ltaxis[0] < 0) ? h2 : (0 - borderpx);
-			y2 += (m->ltaxis[0] < 0) ? 0 : (h1 - borderpx);
-		} else if(abs(m->showbar) == 1) {
-			h1 = h1 * m->mfact;
-			h2 = h2 * (1 - m->mfact) + borderpx;
-			y1 += (m->ltaxis[0] < 0) ? h2 : 0;
-			y2 += (m->ltaxis[0] < 0) ? 0 : h1; }
 		x1 -= borderpx;
 		x2 -= borderpx;
 		w1 += 2 * borderpx;
 		w2 += 2 * borderpx;
+		if(abs(m->showbar) + abs(m->showebar) == 0) {
+			h1 = h1 * m->mfact;
+			h2 = h2 * (1 - m->mfact) + 2 * borderpx;
+			y1 += (m->ltaxis[0] < 0) ? h2 : -borderpx;
+			y2 += (m->ltaxis[0] < 0) ? 0 : h1 -borderpx;
+		} else {
+			h1 = h1 * m->mfact;
+			h2 = h2 * (1 - m->mfact) + borderpx;
+			y1 += (m->ltaxis[0] < 0) ? h2 : (m->topbar ? 0 : -borderpx);
+			y2 += (m->ltaxis[0] < 0) ? 0 : (m->topbar ? h1 : h1 - borderpx); }
+	} else if(n <= m->nmaster) {
+		w1 += 2*borderpx;
+		x1 -= borderpx;
+		if(abs(m->showbar) + abs(m->showebar) == 0) {
+			y1 -= borderpx;
+			h1 += 2 * borderpx;
+		} else {
+			y1 -= m->topbar ? 0 : borderpx;
+			h1 += borderpx; }
 	}
+
 	/* master */
 	n1 = (m->ltaxis[1] != 1 || w1 < (bh + m->gappx + 2 * borderpx) * (m->nmaster + 1)) ? 1 : m->nmaster;
 	n2 = (m->ltaxis[1] != 2 || h1 < (bh + m->gappx + 2 * borderpx) * (m->nmaster + 1)) ? 1 : m->nmaster;
@@ -1949,6 +1950,7 @@ togglebar(const Arg *arg)
 	selmon->showbar = selmon->pertag->showbars[selmon->pertag->curtag] = !selmon->showbar;
 	updatebarpos(selmon);
 	XMoveResizeWindow(dpy, selmon->barwin, selmon->wx, selmon->by, selmon->ww, bh);
+	XMoveResizeWindow(dpy, selmon->ebarwin, selmon->wx, selmon->eby, selmon->ww, bh);
 	arrange(selmon);
 }
 
@@ -1958,6 +1960,7 @@ toggleebar(const Arg *arg)
 	selmon->showebar = selmon->pertag->showebars[selmon->pertag->curtag] = !selmon->showebar;
     updatebarpos(selmon);
     XMoveResizeWindow(dpy, selmon->ebarwin, selmon->wx, selmon->eby, selmon->ww, bh);
+	XMoveResizeWindow(dpy, selmon->barwin, selmon->wx, selmon->by, selmon->ww, bh);
     arrange(selmon);
 }
 
@@ -2134,19 +2137,25 @@ updatebarpos(Monitor *m)
 {
 	m->wy = m->my;
 	m->wh = m->mh;
-	if (m->showbar) {
+	if ((m->showbar) && (m->showebar)){
+		m->wh -= 2 * bh;
+		m->wy = m->topbar ? m->wy + 2 * bh : m->wy;
+		m->by = m->topbar ? m->wy - bh : m->wy + m->wh;
+		m->eby =  m->topbar ? m->wy - 2 * bh : m->wy + m->wh + bh;
+	} else if ((m->showbar) && !(m->showebar)) {
 		m->wh -= bh;
-		m->by = m->topbar ? m->wy : m->wy + m->wh;
-		m->wy = m->topbar ? m->wy + bh : m->wy;
-	} else
-		m->by = -bh;
-    if(m->showebar) {
+		m->wy = m->topbar ? m->wy + bh: m->wy;
+		m->by = m->topbar ? m->wy - bh : m->wy + m->wh;
+		m->eby = - bh;
+	} else if (!(m->showbar) && (m->showebar)) {
 		m->wh -= bh;
-        m->eby = topbar ? m->wy + m->wh : m->wy;
-		m->wy = m->topbar ? m->wy : m->wy + bh;
-	}
-	else
-		m->eby = -bh;
+		m->wy = m->topbar ? m->wy + bh: m->wy;
+		m->eby = m->topbar ? m->wy - bh : m->wy + m->wh;
+		m->by = - bh;
+	} else {
+		m->eby = - bh;
+		m->by = - bh;
+    }
 }
 
 void
