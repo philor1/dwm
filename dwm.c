@@ -2222,6 +2222,17 @@ toggleebar(const Arg *arg)
 {
 	selmon->showebar = selmon->pertag->showebars[selmon->pertag->curtag] = !selmon->showebar;
     updatebarpos(selmon);
+	if (showsystray) {
+		XWindowChanges wc;
+		if (!selmon->showbar)
+			wc.y = -bh;
+		else if (selmon->showbar) {
+			wc.y = 0;
+			if (!selmon->topbar)
+				wc.y = selmon->mh - bh;
+		}
+		XConfigureWindow(dpy, systray->win, CWY, &wc);
+	}
     XMoveResizeWindow(dpy, selmon->ebarwin, selmon->wx, selmon->eby, selmon->ww, bh);
 	XMoveResizeWindow(dpy, selmon->barwin, selmon->wx, selmon->by, selmon->ww, bh);
     arrange(selmon);
