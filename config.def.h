@@ -2,6 +2,9 @@
 
 /* appearance */
 static const unsigned int borderpx  = 1;        /* border pixel of windows */
+static const unsigned int igappx    = 5;        /* size of inner gaps */
+static const unsigned int ogappx    = 5;        /* size of outer gaps */
+static const int gapsforone	    = 0;	/* 1 enable gaps when only one window is open */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
@@ -76,6 +79,12 @@ static Key keys[] = {
 	{ MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
+	{ MODKEY|ShiftMask,             XK_i,      setigaps,       {.i = +2 } },
+	{ MODKEY|ControlMask,           XK_i,      setigaps,       {.i = -2 } },
+	{ MODKEY|ShiftMask|ControlMask, XK_i,      setigaps,       {.i = 0  } },
+	{ MODKEY|ShiftMask,             XK_o,      setogaps,       {.i = +2 } },
+	{ MODKEY|ControlMask,           XK_o,      setogaps,       {.i = -2 } },
+	{ MODKEY|ShiftMask|ControlMask, XK_o,      setogaps,       {.i = 0  } },
 	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
 	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
 	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
