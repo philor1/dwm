@@ -175,7 +175,7 @@ static void detachstack(Client *c);
 static Monitor *dirtomon(int dir);
 static void drawbar(Monitor *m);
 static void drawbars(void);
-static void drawbartabgroups(Monitor *m, int x, int sw);
+static void drawbartabgroups(Monitor *m, int x, int tw);
 static void drawbartab(Monitor *m, Client *c, int x, int w, int tabgroup_active);
 static void drawbartaboptionals(Monitor *m, Client *c, int x, int w, int tabgroup_active);
 static void enternotify(XEvent *e);
@@ -756,7 +756,7 @@ drawbars(void)
 		drawbar(m);
 }
 
-void drawbartabgroups(Monitor *m, int x, int sw) {
+void drawbartabgroups(Monitor *m, int x, int tw) {
 	Client *c;
 	TabGroup *tg_head = NULL, *tg, *tg2;
 	int tabwidth, tabx, tabgroupwidth;
@@ -800,11 +800,11 @@ void drawbartabgroups(Monitor *m, int x, int sw) {
 
 	// Draw
 	drw_setscheme(drw, scheme[SchemeNorm]);
-	drw_rect(drw, x, 0, m->ww - sw - x, bh, 1, 1);
+	drw_rect(drw, x, 0, m->ww - tw - x, bh, 1, 1);
 	for (c = m->clients; c; c = c->next) {
 		if (!ISVISIBLE(c) || (c->isfloating && tg_head->next != NULL)) continue;
 		for (tg = tg_head; tg && tg->x != c->x - m->mx && tg->next; tg = tg->next);
-		tabgroupwidth = (MIN(tg->end, m->ww - sw) - MAX(x, tg->start));
+		tabgroupwidth = (MIN(tg->end, m->ww - tw) - MAX(x, tg->start));
 		tabwidth = (tabgroupwidth / tg->n);
 		tabx = MAX(x, tg->start) + (tabwidth * tg->i);
 		tabwidth += (tg->n == tg->i + 1 ?  tabgroupwidth % tg->n : 0);
@@ -814,7 +814,7 @@ void drawbartabgroups(Monitor *m, int x, int sw) {
 	}
 	if (BARTABGROUPS_BOTTOMBORDER) {
 		drw_setscheme(drw, scheme[SchemeNorm]);
-		drw_rect(drw, x, bh - 1, m->ww - sw - x + 1, 1, 1, 1);
+		drw_rect(drw, x, bh - 1, m->ww - tw - x + 1, 1, 1, 1);
 	}
 
 	while (tg_head != NULL) { tg = tg_head; tg_head = tg_head->next; free(tg); }
