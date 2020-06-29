@@ -64,7 +64,7 @@ enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
-enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,
+enum { ClkTagBar, ClkLtSymbol, ClkStatusText,
        ClkClientWin, ClkRootWin, ClkLast }; /* clicks */
 
 typedef union {
@@ -175,7 +175,7 @@ static void detachstack(Client *c);
 static Monitor *dirtomon(int dir);
 static void drawbar(Monitor *m);
 static void drawbars(void);
-static void drawbartabgroups(Monitor *m, int x, int tw);
+static void drawbartabgroups(Monitor *m, int x, int tw, int passx);
 static void drawbartab(Monitor *m, Client *c, int x, int w, int tabgroup_active);
 static void drawbartaboptionals(Monitor *m, Client *c, int x, int w, int tabgroup_active);
 static void enternotify(XEvent *e);
@@ -458,7 +458,7 @@ buttonpress(XEvent *e)
 		else if (ev->x > selmon->ww - TEXTW(stext))
 			click = ClkStatusText;
 		else
-			click = ClkWinTitle;
+			drawbartabgroups(m, x, TEXTW(stext) - lrpad + 2, ev->x);
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
 		restack(selmon);
@@ -743,7 +743,7 @@ drawbar(Monitor *m)
 	w = blw = TEXTW(m->ltsymbol);
 	drw_setscheme(drw, scheme[SchemeNorm]);
 	x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);
-	drawbartabgroups(m, x, tw);
+	drawbartabgroups(m, x, tw, 0);
 	drw_map(drw, m->barwin, 0, 0, m->ww, bh);
 }
 
@@ -756,7 +756,7 @@ drawbars(void)
 		drawbar(m);
 }
 
-void drawbartabgroups(Monitor *m, int x, int tw) {
+void drawbartabgroups(Monitor *m, int x, int tw, int passx) {
 	Client *c;
 	TabGroup *tg_head = NULL, *tg, *tg2;
 	int tabwidth, tabx, tabgroupwidth;
@@ -810,6 +810,10 @@ void drawbartabgroups(Monitor *m, int x, int tw) {
 		tabwidth += (tg->n == tg->i + 1 ?  tabgroupwidth % tg->n : 0);
 		drawbartab(m, c, tabx, tabwidth, tg->active);
 		drawbartaboptionals(m, c, tabx, tabwidth, tg->active);
+		if (passx > 0 && passx > tabx && passx < tabx + tabwidth) {
+			focus(c);
+			restack(selmon);
+		}
 		tg->i++;
 	}
 	if (BARTABGROUPS_BOTTOMBORDER) {
