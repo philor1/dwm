@@ -154,6 +154,14 @@ static Key keys[] = {
 	{ MODKEY|ControlMask,           XK_t,      rotatelayoutaxis, {.i = 1} },    /* 1 = master axis */
 	{ MODKEY|ControlMask|ShiftMask, XK_t,      rotatelayoutaxis, {.i = 2} },    /* 2 = stack axis */
 	{ MODKEY|ControlMask,           XK_Return, mirrorlayout,     {0} },
+	{ MODKEY,			XK_Up,	   moveresize,	   {.v = "0x -25y 0w 0h"} },
+	{ MODKEY,			XK_Down,   moveresize,	   {.v = "0x 25y 0w 0h"} },
+	{ MODKEY,			XK_Left,   moveresize,	   {.v = "-25x 0y 0w 0h"} },
+	{ MODKEY,			XK_Right,  moveresize,	   {.v = "25x 0y 0w 0h"} },
+	{ MODKEY|ShiftMask,		XK_Up,	   moveresize,	   {.v = "0x 0y 0w -25h"} },
+	{ MODKEY|ShiftMask,		XK_Down,   moveresize,	   {.v = "0x 0y 0w 25h"} },
+	{ MODKEY|ShiftMask,		XK_Left,   moveresize,	   {.v = "0x 0y -25w 0h"} },
+	{ MODKEY|ShiftMask,		XK_Right,  moveresize,	   {.v = "0x 0y 25w 0h"} },
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
 	TAGKEYS(                        XK_3,                      2)
