@@ -1232,7 +1232,7 @@ void drawbartaboptionals(Monitor *m, Client *c, int x, int w, int tabgroup_activ
 
 	// Borders between tabs
 	if (BARTABGROUPS_BORDERS) {
-		XSetForeground(drw->dpy, drw->gc, drw->scheme[ColBorder].pixel);
+		XSetForeground(drw->dpy, drw->gc, scheme[SchemeNorm][ColBg].pixel);
 		XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, 0, 1, bh);
 		XFillRectangle(drw->dpy, drw->drawable, drw->gc, x + w, 0, 1, bh);
 	}
