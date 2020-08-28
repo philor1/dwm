@@ -210,7 +210,7 @@ static void detachstack(Client *c);
 static Monitor *dirtomon(int dir);
 static void drawbar(Monitor *m);
 static void drawbars(void);
-static void drawbartabgroups(Monitor *m, int x, int tw, int passx);
+static void drawbartabgroups(Monitor *m, int x, int stw, int passx);
 static void drawbartab(Monitor *m, Client *c, int x, int w, int tabgroup_active);
 static void drawbartaboptionals(Monitor *m, Client *c, int x, int w, int tabgroup_active);
 static int drawstatusbar(Monitor *m, int bh, char* text);
@@ -514,6 +514,8 @@ buttonpress(XEvent *e)
 	Monitor *m;
 	XButtonPressedEvent *ev = &e->xbutton;
 	lastbutton = ev->button;
+	int stw = 0;
+	stw = getsystraywidth();
 
 	click = ClkRootWin;
 	/* focus monitor if necessary */
@@ -588,7 +590,7 @@ buttonpress(XEvent *e)
 		} else if (ev->x < x + blw)
 			click = ClkLtSymbol;
 		else
-			drawbartabgroups(m, x, TEXTW(stext) - lrpad + 2, ev->x);
+			drawbartabgroups(m, x, stw, ev->x);
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
 		restack(selmon);
@@ -1046,7 +1048,7 @@ drawstatusbar(Monitor *m, int bh, char* stext) {
 void
 drawbar(Monitor *m)
 {
-	int x, w, tw = 0, stw = 0;
+	int x, w, stw = 0;
 	int boxs = drw->fonts->h / 9;
 	int boxw = drw->fonts->h / 6 + 2;
 	unsigned int i, occ = 0, urg = 0;
@@ -1074,7 +1076,7 @@ drawbar(Monitor *m)
 	w = blw = TEXTW(m->ltsymbol);
 	drw_setscheme(drw, scheme[SchemeNorm]);
 	x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);
-	drawbartabgroups(m, x, tw, 0);
+	drawbartabgroups(m, x, stw, 0);
 	drw_map(drw, m->barwin, 0, 0, m->ww - stw, bh);
 	drawstatusbar(m, bh, stext);
 	drw_map(drw, m->ebarwin, 0, 0, m->ww, bh);
@@ -1099,7 +1101,7 @@ drawbars(void)
 		updatesystray();
 }
 
-void drawbartabgroups(Monitor *m, int x, int tw, int passx) {
+void drawbartabgroups(Monitor *m, int x, int stw, int passx) {
 	Client *c;
 	TabGroup *tg_head = NULL, *tg, *tg2;
 	int tabwidth, tabx, tabgroupwidth;
@@ -1107,12 +1109,12 @@ void drawbartabgroups(Monitor *m, int x, int tw, int passx) {
 	// Calculate
 	if (NULL != m->lt[m->sellt]->arrange) {
 		for (c = m->clients; c; c = c->next) {
-			if (ISVISIBLE(c) && !c->isfloating) {
+			if (ISVISIBLE(c) && !c->isfloating && abs(m->ltaxis[0]) != 2) {
 				for (tg = tg_head; tg && tg->x != c->x - m->mx && tg->next; tg = tg->next);
 				if (!tg || (tg && tg->x != c->x - m->mx)) {
 					tg2 = calloc(1, sizeof(TabGroup));
 					tg2->start = tg2->end = tg2->x = c->x - m->mx;
-					tg2->end += c->w;
+					tg2->end += c->w + 2 * borderpx;
 					if (tg) { tg->next = tg2; } else { tg_head = tg2; }
 				}
 			}
@@ -1143,25 +1145,35 @@ void drawbartabgroups(Monitor *m, int x, int tw, int passx) {
 
 	// Draw
 	drw_setscheme(drw, scheme[SchemeNorm]);
-	drw_rect(drw, x, 0, m->ww - tw - x, bh, 1, 1);
+	drw_rect(drw, x, 0, m->ww - stw - x, bh, 1, 1);
 	for (c = m->clients; c; c = c->next) {
 		if (!ISVISIBLE(c) || (c->isfloating && tg_head->next != NULL)) continue;
 		for (tg = tg_head; tg && tg->x != c->x - m->mx && tg->next; tg = tg->next);
-		tabgroupwidth = (MIN(tg->end, m->ww - tw) - MAX(x, tg->start));
+		tabgroupwidth = (MIN(tg->end, m->ww - stw) - MAX(x, tg->start));
 		tabwidth = (tabgroupwidth / tg->n);
 		tabx = MAX(x, tg->start) + (tabwidth * tg->i);
 		tabwidth += (tg->n == tg->i + 1 ?  tabgroupwidth % tg->n : 0);
 		drawbartab(m, c, tabx, tabwidth, tg->active);
 		drawbartaboptionals(m, c, tabx, tabwidth, tg->active);
-		if (passx > 0 && passx > tabx && passx < tabx + tabwidth) {
-			focus(c);
-			restack(selmon);
+		if (m ->lt[m->sellt]->arrange == tile) {
+			if (passx > 0 && passx > tabx && passx < tabx + tabwidth) {
+				focus(c);
+				restack(selmon);
+			}
+		} else {
+			unsigned int columns;
+			columns = LENGTH(tags) / tagrows + ((LENGTH(tags) % tagrows > 0) ? 1 : 0);
+			if (passx > 0 && passx > (x + blw + columns * bh / tagrows) + (m->ww - stw - (x + blw + columns * bh / tagrows)) / tg->n * tg->i && passx < (x + blw + columns * bh / tagrows) + (m->ww - stw - (x + blw + columns * bh / tagrows)) / tg->n * tg->i + (m->ww - stw - (x + blw + columns * bh / tagrows)) / tg->n ) {
+				focus(c);
+				restack(selmon);
+			}
 		}
 		tg->i++;
 	}
+
 	if (BARTABGROUPS_BOTTOMBORDER) {
 		drw_setscheme(drw, scheme[SchemeNorm]);
-		drw_rect(drw, x, bh - 1, m->ww - tw - x + 1, 1, 1, 1);
+		drw_rect(drw, x, bh - 1, m->ww - stw - x + 1, 1, 1, 1);
 	}
 
 	while (tg_head != NULL) { tg = tg_head; tg_head = tg_head->next; free(tg); }
