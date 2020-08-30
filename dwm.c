@@ -1492,14 +1492,14 @@ void drawtaggrid(Monitor *m, int *x_pos, unsigned int occ)
 		    invert = m->tagset[m->seltags] & 1 << i ? 0 : 1;
 
             /* Select active color for current square */
-            XSetForeground(drw->dpy, drw->gc, !invert ? scheme[SchemeSel][ColBg].pixel :
-                                scheme[SchemeNorm][ColFg].pixel);
+            XSetForeground(drw->dpy, drw->gc, !invert ? scheme[SchemeTabActiveGroup][ColBorder].pixel :
+                                scheme[SchemeTabActiveGroup][ColFloat].pixel);
             XFillRectangle(dpy, drw->drawable, drw->gc, x+1, y+1, h-1, h-1);
 
             /* Mark square if tag has client */
             if (occ & 1 << i) {
                 XSetForeground(drw->dpy, drw->gc, !invert ? scheme[SchemeSel][ColFg].pixel :
-                                scheme[SchemeNorm][ColBorder].pixel);
+                                scheme[SchemeTabInactive][ColFloat].pixel);
                 XFillRectangle(dpy, drw->drawable, drw->gc, x + 1, y + 1,
                                h / 2, h / 2);
             }
