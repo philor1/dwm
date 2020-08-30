@@ -70,12 +70,12 @@ static const Rule rules[] = {
 	 *	WM_CLASS(STRING) = instance, class
 	 *	WM_NAME(STRING) = title
 	 */
-	/* class     instance  title           tags mask  switchtotag  isfloating  isterminal  noswallow  monitor  scratch key */
-	{ "Gimp",    NULL,     NULL,           0,         0,           1,          0,           0,        -1,      0    },
-	{ "Firefox", NULL,     NULL,           1 << 8,    0,           0,          0,          -1,        -1,      0    },
-	{ "st",      NULL,     NULL,           0,         0,           0,          1,          -1,        -1,      0    },
-	{ NULL,      NULL,     "Event Tester", 0,         0,           1,          0,           1,        -1,      0    }, /* xev */
-	{ NULL,      NULL,     "scratchpad",   0,         0,           1,          1,          -1,        -1,     's'   },
+	/* class     instance  title           tags mask  switchtotag  isfloating  isterminal  noswallow  monitor  scratch key  float x,y,w,h   floatborderpx */
+	{ "Gimp",    NULL,     NULL,           0,         0,           1,          0,           0,        -1,      0,           50,50,500,500,  5   },
+	{ "Firefox", NULL,     NULL,           1 << 8,    0,           0,          0,          -1,        -1,      0,           50,50,500,500,  5   },
+	{ "st",      NULL,     NULL,           0,         0,           0,          1,          -1,        -1,      0,           50,50,500,500,  5   },
+	{ NULL,      NULL,     "Event Tester", 0,         0,           1,          0,           1,        -1,      0,           50,50,500,500,  5   }, /* xev */
+	{ NULL,      NULL,     "scratchpad",   0,         0,           1,          1,          -1,        -1,     's',          50,50,500,500,  5   },
 };
 
 /* layout(s) */
