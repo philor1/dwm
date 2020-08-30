@@ -24,27 +24,27 @@ static const int systraypinningfailfirst = 1;   /* 1: if pinning fails, display 
 static const int showsystray             = 1;   /* 0 means no systray */
 static const char *fonts[]          = { "monospace:size=10" };
 static const char dmenufont[]       = "monospace:size=10";
-static char normbgcolor[]           = "#222222";
-static char normbordercolor[]       = "#444444";
-static char normfgcolor[]           = "#bbbbbb";
-static char selfgcolor[]            = "#eeeeee";
-static char selbordercolor[]        = "#005577";
-static char selbgcolor[]            = "#005577";
+static char col_alt[]               = "#005577";
+static char col_bg[]                = "#222222";
+static char col_fg[]                = "#eeeeee";
+static char col_inact[]             = "#444444";
+static char col_act[]               = "#bbbbbb";
+static char col_sel[]               = "#005577";
 static const unsigned int baralpha = 0xd0;
 static const unsigned int borderalpha = OPAQUE;
 static char *colors[][3] = {
-    /*               fg           bg           border   */
-	[SchemeNorm] = { normfgcolor, normbgcolor, normbordercolor },
-	[SchemeSel]  = { selfgcolor,  selbgcolor,  selbordercolor  },
-	[SchemeTabActiveGroup]  =   { normbordercolor, normfgcolor, normbordercolor },
-	[SchemeTabInactive]     =   { normbgcolor,     normfgcolor, normbgcolor }
+    /*                        fg                bg           border   */
+    [SchemeNorm] =          { col_fg,           col_bg,      col_inact },
+    [SchemeSel]  =          { col_bg,           col_sel,     col_sel   },
+    [SchemeTabActiveGroup]= { col_inact,        col_act,     col_bg    },
+    [SchemeTabInactive]   = { col_act,          col_inact,   col_bg    }
 };
 static const unsigned int alphas[][3]      = {
-	/*               fg      bg        border     */
-	[SchemeNorm] = { OPAQUE, baralpha, borderalpha },
-	[SchemeSel]  = { OPAQUE, baralpha, borderalpha },
-	[SchemeTabActiveGroup]  =   { OPAQUE, baralpha, borderalpha },
-	[SchemeTabInactive]     =   { OPAQUE, baralpha, borderalpha }
+    /*                        fg                bg           border     */
+    [SchemeNorm] =          { OPAQUE,           baralpha,    borderalpha },
+    [SchemeSel]  =          { OPAQUE,           baralpha,    borderalpha },
+    [SchemeTabActiveGroup]= { OPAQUE,           baralpha,    borderalpha },
+    [SchemeTabInactive]   = { OPAQUE,           baralpha,    borderalpha }
 };
 
 /* tagging */
@@ -110,7 +110,7 @@ static const Layout layouts[] = {
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbordercolor, "-sf", selfgcolor, NULL };
+static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_bg, "-nf", col_fg, "-sb", col_sel, "-sf", col_bg, NULL };
 static const char *termcmd[]  = { "st", NULL };
 static const char *browser[] = { "luakit", NULL, NULL, NULL, "Luakit" };
 
