@@ -18,6 +18,7 @@ static const int swallowfloating    = 0;        /* 1 means swallow floating wind
 static const int showbar            = 1;        /* 0 means no bar */
 static const int showebar           = 1;        /* 0 means no extra bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
+static const int notileborder       = 1;        /* 1 disables tiled borders for non-small gaps */
 static const unsigned int systraypinning = 0;   /* 0: sloppy systray follows selected monitor, >0: pin systray to monitor X */
 static const unsigned int systrayspacing = 0;   /* systray spacing */
 static const int systraypinningfailfirst = 1;   /* 1: if pinning fails, display systray on the first monitor, False: display systray on the last monitor*/
