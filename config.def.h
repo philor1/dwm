@@ -83,6 +83,7 @@ static const Rule rules[] = {
 static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 0;    /* 1 means respect size hints in tiled resizals */
+static const int resizehintsbm = 0;    /* resizehints for > resizehintsbm * borderpixel */
 static const int attachdirection = 0;    /* 0 default, 1 above, 2 aside, 3 below, 4 bottom, 5 top */
 static const int  layoutaxis[] = {
 	1,    /* layout axis: 1 = x, 2 = y; negative values mirror the layout */
