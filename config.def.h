@@ -32,19 +32,19 @@ static char col_act[]               = "#bbbbbb";
 static char col_sel[]               = "#005577";
 static const unsigned int baralpha = 0xd0;
 static const unsigned int borderalpha = OPAQUE;
-static char *colors[][3] = {
-    /*                        fg                bg           border   */
-    [SchemeNorm] =          { col_fg,           col_bg,      col_inact },
-    [SchemeSel]  =          { col_bg,           col_sel,     col_sel   },
-    [SchemeTabActiveGroup]= { col_inact,        col_act,     col_bg    },
-    [SchemeTabInactive]   = { col_act,          col_inact,   col_bg    }
+static char *colors[][4] = {
+    /*                        fg                bg           border      float      */
+    [SchemeNorm] =          { col_fg,           col_bg,      col_inact,  col_inact  },
+    [SchemeSel]  =          { col_bg,           col_sel,     col_sel,    col_sel    },
+    [SchemeTabActiveGroup]= { col_inact,        col_act,     col_bg,     col_bg     },
+    [SchemeTabInactive]   = { col_act,          col_inact,   col_bg,     col_bg     }
 };
-static const unsigned int alphas[][3]      = {
-    /*                        fg                bg           border     */
-    [SchemeNorm] =          { OPAQUE,           baralpha,    borderalpha },
-    [SchemeSel]  =          { OPAQUE,           baralpha,    borderalpha },
-    [SchemeTabActiveGroup]= { OPAQUE,           baralpha,    borderalpha },
-    [SchemeTabInactive]   = { OPAQUE,           baralpha,    borderalpha }
+static const unsigned int alphas[][4]      = {
+    /*                        fg                bg           border         float   */
+    [SchemeNorm] =          { OPAQUE,           baralpha,    borderalpha,   OPAQUE  },
+    [SchemeSel]  =          { OPAQUE,           baralpha,    borderalpha,   OPAQUE  },
+    [SchemeTabActiveGroup]= { OPAQUE,           baralpha,    borderalpha,   OPAQUE  },
+    [SchemeTabInactive]   = { OPAQUE,           baralpha,    borderalpha,   OPAQUE  }
 };
 
 /* tagging */
