@@ -2246,28 +2246,23 @@ tile(Monitor *m)
 
 	/* master and stack area */
 	if(abs(m->ltaxis[0]) == 1 && n > m->nmaster) {
-		w1 = w1 * m->mfact;
-		w2 = w2 * (1 - m->mfact) + 2 * borderpx;
+		w1 = w1 * m->mfact + borderpx;
+		w2 = w2 * (1 - m->mfact) + borderpx;
 		x1 += (m->ltaxis[0] < 0) ? w2 : (0 - borderpx);
 		x2 += (m->ltaxis[0] < 0) ? 0 : (w1 - borderpx);
 		if(abs(m->showbar) + abs(m->showebar) == 0) {
-			y1 -= borderpx;
-			y2 -= borderpx;
-			h1 += 2 * borderpx + 1;
-			h2 += 2 * borderpx + 1;
+			y1 = y2 -= borderpx;
+			h1 = h2 += 2 * borderpx + 1;
 		} else {
-			y1 -= m->topbar ? 0 : borderpx;
-			y2 -= m->topbar ? 0 : borderpx;
-			h1 += borderpx + 1;
-			h2 += borderpx + 1; }
+			y1 = y2 -= m->topbar ? 0 : borderpx;
+			h1 = h2 += borderpx + 1;
+		}
 	} else if(abs(m->ltaxis[0]) == 2 && n > m->nmaster) {
-		x1 -= borderpx;
-		x2 -= borderpx;
-		w1 += 2 * borderpx;
-		w2 += 2 * borderpx;
+		x1 = x2 -= borderpx;
+		w1 = w2 += 2 * borderpx;
 		if(abs(m->showbar) + abs(m->showebar) == 0) {
-			h1 = h1 * m->mfact;
-			h2 = h2 * (1 - m->mfact) + 2 * borderpx;
+			h1 = h1 * m->mfact + borderpx;
+			h2 = h2 * (1 - m->mfact) + borderpx;
 			y1 += (m->ltaxis[0] < 0) ? h2 : -borderpx;
 			y2 += (m->ltaxis[0] < 0) ? 0 : h1 -borderpx;
 		} else {
@@ -2276,8 +2271,8 @@ tile(Monitor *m)
 			y1 += (m->ltaxis[0] < 0) ? h2 : (m->topbar ? 0 : -borderpx);
 			y2 += (m->ltaxis[0] < 0) ? 0 : (m->topbar ? h1 : h1 - borderpx); }
 	} else if(n <= m->nmaster) {
-		w1 += 2*borderpx;
 		x1 -= borderpx;
+		w1 += 2*borderpx;
 		if(abs(m->showbar) + abs(m->showebar) == 0) {
 			y1 -= borderpx;
 			h1 += 2 * borderpx;
@@ -2311,7 +2306,7 @@ tile(Monitor *m)
 				float h = (h1 - m->gappx - (n > m->nmaster && m->ltaxis[0] == 1 ? 1 : 0)) - 2 * borderpx;
 				resize(c, x1 + m->gappx, y1 + m->gappx, w - m->gappx, h - m->gappx, False);
 				if(n1 > 1)
-				        x1 = c->x + WIDTH(c);
+					x1 = c->x + WIDTH(c);
 				if(n2 > 1)
 					y1 = c->y + HEIGHT(c);
 		}
@@ -2342,7 +2337,7 @@ tile(Monitor *m)
 				float h = (h2 - m->gappx + (abs(m->ltaxis[0]) == 2 ? 1 : -1)) - 2 * borderpx;
 				resize(c, x2 + m->gappx, y2 + m->gappx, w - m->gappx, h - m->gappx, False);
 				if(n1 > 1)
-				        x2 = c->x + WIDTH(c);
+					x2 = c->x + WIDTH(c);
 				if(n2 > 1)
 					y2 = c->y + HEIGHT(c);
 			}
