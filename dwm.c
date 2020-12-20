@@ -890,7 +890,9 @@ cleanupmon(Monitor *mon)
 		m->next = mon->next;
 	}
 	XUnmapWindow(dpy, mon->barwin);
+	XUnmapWindow(dpy, mon->ebarwin);
 	XDestroyWindow(dpy, mon->barwin);
+	XDestroyWindow(dpy, mon->ebarwin);
 	free(mon);
 }
 
@@ -995,7 +997,8 @@ configurenotify(XEvent *e)
 			drw_resize(drw, sw, bh);
 			updatebars();
 			for (m = mons; m; m = m->next) {
-                XMoveResizeWindow(dpy, m->ebarwin, mons->wx, m->eby, mons->ww, bh);
+				XMoveResizeWindow(dpy, m->barwin, m->wx, m->by, m->ww, bh);
+				XMoveResizeWindow(dpy, m->ebarwin, m->wx, m->eby, m->ww, bh);
 			}
 			focus(NULL);
 			arrange(NULL);
@@ -3582,27 +3585,27 @@ updatebars(void)
 	};
 	XClassHint ch = {"dwm", "dwm"};
 	for (m = mons; m; m = m->next) {
-		if (m->barwin)
-			continue;
-		w = m->ww;
-		if (showsystray && m == systraytomon(m))
-			w -= getsystraywidth();
-		m->barwin = XCreateWindow(dpy, root, m->wx, m->by, w, bh, 0, depth,
-		                          InputOutput, visual,
-		                          CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &wa);
-		XDefineCursor(dpy, m->barwin, cursor[CurNormal]->cursor);
-		if (showsystray && m == systraytomon(m))
-			XMapRaised(dpy, systray->win);
-		XMapRaised(dpy, m->barwin);
-		XSetClassHint(dpy, m->barwin, &ch);
-        if(m->ebarwin)
-            continue;
-		m->ebarwin = XCreateWindow(dpy, root, m->wx, m->eby, mons->ww, bh, 0, depth,
-								InputOutput, visual,
-								CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &wa);
-		XDefineCursor(dpy, m->ebarwin, cursor[CurNormal]->cursor);
-		XMapRaised(dpy, m->ebarwin);
-		XSetClassHint(dpy, m->ebarwin, &ch);
+		if (!m->barwin) {
+			w = m->ww;
+			if (showsystray && m == systraytomon(m))
+				w -= getsystraywidth();
+			m->barwin = XCreateWindow(dpy, root, m->wx, m->by, w, bh, 0, depth,
+			                          InputOutput, visual,
+			                          CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &wa);
+			XDefineCursor(dpy, m->barwin, cursor[CurNormal]->cursor);
+			if (showsystray && m == systraytomon(m))
+				XMapRaised(dpy, systray->win);
+			XMapRaised(dpy, m->barwin);
+			XSetClassHint(dpy, m->barwin, &ch);
+		}
+        if(!m->ebarwin) {
+			m->ebarwin = XCreateWindow(dpy, root, m->wx, m->eby, mons->ww, bh, 0, depth,
+									InputOutput, visual,
+									CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWColormap|CWEventMask, &wa);
+			XDefineCursor(dpy, m->ebarwin, cursor[CurNormal]->cursor);
+			XMapRaised(dpy, m->ebarwin);
+			XSetClassHint(dpy, m->ebarwin, &ch);
+		}
 	}
 }
 
