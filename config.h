@@ -87,6 +87,7 @@ static const Rule rules[] = {
 	/* class     	instance  title           tags mask  switchtotag  isfloating  isterminal  noswallow  monitor  scratch key  float x,y,w,h   border (-1 ==> off; 0 ==> '0') */
 	{ "Gimp",		NULL,		NULL,			0,			0,           1,          0,           0,        -1,      0,           -11,-11,-11,-11,		-1	},
 	{ "qutebrowser",NULL,		NULL,			0,			0,           0,          0,           0,        -1,      0,           -10,-10,-10,-10,		-1	},
+	{ "Onboard",	NULL,		NULL,			0,			0,           1,          0,           0,        -1,      0,           -10,-10,-10,-10,		0	},
 	{ "St",			NULL,		NULL,			0,			0,           0,          1,           0,        -1,      0,           -10,-10,-10,-10,		-1	},
 	{ NULL,			NULL,		"Event Tester",	0,			0,           1,          0,           1,        -1,      0,           -10,-10,-10,-10,		-1	}, /* xev */
 	{ NULL,			NULL,		"scratchpad",	0,			0,           1,          1,           0,        -1,     's',          -10,-10,1200,500,		-1	},
