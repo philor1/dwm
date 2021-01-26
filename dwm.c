@@ -1360,7 +1360,7 @@ void drawbartabgroups(Monitor *m, int x, int stw, int passx) {
 	// Calculate
 	if (NULL != m->lt[m->sellt]->arrange) {
 		for (c = m->clients; c; c = c->next) {
-			if (ISVISIBLE(c) && !c->isfloating && abs(m->ltaxis[0]) != 2) {
+			if (ISVISIBLE(c) && !c->isfloating && abs(m->ltaxis[0]) != 2 && m->lt[m->sellt]->arrange != monocle) {
 				for (tg = tg_head; tg && tg->x != c->x - m->mx && tg->next; tg = tg->next);
 				if (!tg || (tg && tg->x != c->x - m->mx)) {
 					tg2 = calloc(1, sizeof(TabGroup));
