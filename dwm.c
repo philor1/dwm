@@ -2101,7 +2101,7 @@ monocle(Monitor *m)
 		else if (abs(m->showbar) + abs(m->showebar) == 1)
 		resize(c, m->wx - c->bw, m->wy, m->ww, m->wh - c->bw, 0, 0);
 		else
-		resize(c, m->wx - c->bw, m->wy, m->ww, m->wh - 2 * c->bw + borderpx, 0, 0);
+		resize(c, m->wx - c->bw, m->wy, m->ww, m->wh - c->bw, 0, 0);
 		c = c->snext;
 	}
 	for (; c; c = c->snext)
@@ -2808,6 +2808,7 @@ setlayout(const Arg *arg)
 		arrange(selmon);
 	else
 		drawbar(selmon);
+	arrangemon(selmon);
 }
 
 void setcfact(const Arg *arg) {
@@ -3384,6 +3385,7 @@ togglefloating(const Arg *arg)
 	}
     shadowfloat(selmon->sel);
     arrange(selmon);
+	arrangemon(selmon);
 }
 
 void
