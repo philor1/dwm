@@ -50,7 +50,7 @@ static char *colors[][4] = {
     [SchemeNorm] =          { col_fg,		col_bg,		col_bg,		col_inact	},
     [SchemeSel]  =          { col_bg,		col_fg, 	col_fg,		col_fg		},
     [SchemeTabActiveGroup]= { col_alt,		col_act,	col_sel,	col_fg		},	// ...  ...  taggrid-selected taggrid-bg
-    [SchemeTabInactive]   = { col_alt,		col_inact,	col_inact,	col_inact	}	// ...  ...  small-gap-color  taggrid-unsel-square
+    [SchemeTabInactive]   = { col_alt,		col_act,	col_bg, 	col_bg  	}	// ...  ...  small-gap-color  taggrid-unsel-square
 };
 static const unsigned int alphas[][4] = {
     /*                        fg            bg          border      float       */

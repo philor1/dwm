@@ -3218,22 +3218,28 @@ tile(Monitor *m)
 	}
 
 	if(m->gappx == 0) {
+		if(abs(m->showbar) + abs(m->showebar) == 0) {
+			y1 -= borderpx;			y2 -= borderpx;
+			h1 += borderpx;			h2 += borderpx;
+		}
 		if(abs(m->ltaxis[0]) == 1 && n > m->nmaster) {
-			h1 += borderpx;
-			h2 += borderpx;
-			w1 += borderpx;
-			w2 += borderpx;
-			if(m->ltaxis[0] < 0)
-				x2 -= borderpx;
-			else
-				x1 -= borderpx;
+			h1 += borderpx;			h2 += borderpx;
+			w1 += borderpx;			w2 += borderpx;
+			if(m->ltaxis[0] < 0)	x2 -= borderpx;
+			else					x1 -= borderpx;
+			if(m->topbar == 0) {	y1 -= borderpx;	y2 -= borderpx; }
 		}
 		if(abs(m->ltaxis[0]) == 2 && n > m->nmaster) {
-			h2 += borderpx;
-			w1 += 2 * borderpx;
-			w2 += 2 * borderpx;
-			x1 -= borderpx;
-			x2 -= borderpx;
+			w1 += 2 * borderpx;		w2 += 2 * borderpx;
+			x1 -= borderpx;			x2 -= borderpx;
+			if(m->topbar == 0) {	h1 += borderpx;	y1 -= borderpx; }
+			else					h2 += borderpx;
+		}
+		if(n == 1) {
+			h1 += borderpx;			h2 += borderpx;
+			w1 += 2 * borderpx;		w2 += 2 * borderpx;
+			x2 -= borderpx;			x1 -= borderpx;
+			if(m->topbar == 0) {	y1 -= borderpx;	y2 -= borderpx; }
 		}
 	}
 
