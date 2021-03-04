@@ -10,7 +10,7 @@
 
 #define BARTABGROUPS_BORDERS 1         // 0 = disable, 1 = enable
 #define BARTABGROUPS_BOTTOMBORDER 1    // 0 = disable, 1 = enable
-#define BARTABGROUPS_FUZZPX 12         // # pixels cutoff between bartab groups to merge (e.g. max gaps px)
+#define BARTABGROUPS_FUZZPX 5         // # pixels cutoff between bartab groups to merge (e.g. max gaps px)
 #define BARTABGROUPS_FLOATINDICATOR 1  // 0 = disable, 1 = enable
 #define BARTABGROUPS_FLOATPX 5         // # pixels for float box indicator
 #define BARTABGROUPS_TAGSINDICATOR 1   // 0 = disable, 1 = enable when >1 client or view tag, 2 = enable always
@@ -21,7 +21,7 @@
 /* appearance */
 static const unsigned int gappx     = 10;       /* gaps between windows */
 static const unsigned int borderpx  = 2;        /* border pixel of windows */
-static const unsigned int snap      = 32;       /* snap pixel */
+static const unsigned int snap      = 10;       /* snap pixel */
 static const unsigned int systraypinning = 0;   /* 0: sloppy systray follows selected monitor, >0: pin systray to monitor X */
 static const unsigned int systrayspacing = 2;   /* systray spacing */
 static const int swallowfloating    = 1;        /* 1 means swallow floating windows by default */
@@ -85,6 +85,7 @@ static const Rule rules[] = {
 	 *	WM_NAME(STRING) = title
 	 */
 	/* class     	instance  title           tags mask  switchtotag  isfloating  isterminal  noswallow  monitor  scratch key  float x,y,w,h   border (-1 ==> off; 0 ==> '0') */
+	{ NULL,			NULL,		NULL,			0,			0,			 0,          0,           0,        -1,      0,           -10,-10,-10,-10,		-1  }, /* default */
 	{ "Gimp",		NULL,		NULL,			0,			0,           1,          0,           0,        -1,      0,           -11,-11,-11,-11,		-1	},
 	{ "qutebrowser",NULL,		NULL,			0,			0,           0,          0,           0,        -1,      0,           -10,-10,-10,-10,		-1	},
 	{ "Onboard",	NULL,		NULL,			0,			0,           1,          0,           0,        -1,      0,           -10,-10,-10,-10,		0	},
@@ -99,8 +100,6 @@ static const Rule rules[] = {
 	{ "dbar",		"calen",	NULL,			0,			0,           1,          0,           0,        -1,      0,           330,-1,170,160,		1	},
 	{ "dbar",		"calcurse",	NULL,			0,			0,           1,          0,           0,        -1,      0,           330,-1,600,600,		1	},
 	{ "dbar",		"htop",		NULL,			0,			0,           1,          0,           0,        -1,      0,           520,-1,800,650,		1	},
-	/* default */
-//	{ NULL,   	 	NULL,     NULL,           0,         0,           0,          0,           0,        -1,      0,           0,0,0,0,		   0   },
 };
 
 /* layout(s) */
