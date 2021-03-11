@@ -1436,9 +1436,12 @@ void drawbartabgroups(Monitor *m, int x, int stw, int passx) {
 
 void drawbartab(Monitor *m, Client *c, int x, int w, int tabgroup_active) {
 	if (!c) return;
+	Client *s;
+	int n;
+	for(n = 0, s = nexttiled(m->clients); s; s = nexttiled(s->next), n++);
 	drw_setscheme(drw, scheme[
 		m->sel == c ?
-		SchemeSel : (tabgroup_active ? SchemeTabActiveGroup : SchemeTabInactive)
+		(n == 1 ? SchemeNorm : SchemeSel) : (tabgroup_active ? SchemeTabActiveGroup : SchemeTabInactive)
 	]);
 	drw_text(drw, x, 0, w, bh, lrpad / 2, c->name, 0);
 }
