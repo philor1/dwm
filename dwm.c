@@ -3158,7 +3158,7 @@ tile(Monitor *m)
 	int x1 = m->wx + m->gappx, y1 = m->wy + m->gappx, h1 = m->wh - m->gappx, w1 = m->ww - m->gappx, X1 = x1 + w1, Y1 = y1 + h1;
 	int x2 = m->wx + m->gappx, y2 = m->wy + m->gappx, h2 = m->wh - m->gappx, w2 = m->ww - m->gappx, X2 = x2 + w2, Y2 = y2 + h2;
 	unsigned int i, n, n1, n2, bw;
-	Client *c, *s, *d, *t;
+	Client *c, *s, *d, *t, *o;
 	float mfacts = 0, sfacts = 0;
 
 	if (notileborder == 1 && m->gappx > borderpx)
@@ -3250,7 +3250,7 @@ tile(Monitor *m)
 	/* master */
 	n1 = (m->ltaxis[1] != 1 || w1 < (bh + m->gappx + 2 * borderpx) * (m->nmaster + 1)) ? 1 : m->nmaster;
 	n2 = (m->ltaxis[1] != 2 || h1 < (bh + m->gappx + 2 * borderpx) * (m->nmaster + 1)) ? 1 : m->nmaster;
-	for(i = 0, c = nexttiled(m->clients); i < m->nmaster; c = nexttiled(c->next), i++) {
+	for(i = 0, o = c = nexttiled(m->clients); i < m->nmaster; o = c = nexttiled(c->next), i++) {
 		resize(c, x1, y1,
 			(m->ltaxis[1] == 1 && i + 1 == m->nmaster) ? X1 - x1 - 2 * bw - m->gappx : w1 * (n1 > 1 ? (c->cfact / mfacts) : 1) - 2 * bw - m->gappx,
 			(m->ltaxis[1] == 2 && i + 1 == m->nmaster) ? Y1 - y1 - 2 * bw - m->gappx : h1 * (n2 > 1 ? (c->cfact / mfacts) : 1) - 2 * bw - m->gappx,
@@ -3261,7 +3261,7 @@ tile(Monitor *m)
 			y1 = c->y + HEIGHT(c) + m->gappx;
 	}
 	if(m->ltaxis[1] == 3) {
-		for(i = 0, d = nexttiled(m->clients); i < m->nmaster; c = d = nexttiled(d->next), i++) {
+		for(i = 0, o = d = nexttiled(m->clients); i < m->nmaster; o = d = nexttiled(d->next), i++) {
 			XMoveWindow(dpy, d->win, WIDTH(d) * -2, d->y);
 		}
 		for (t = m->stack; t; t = t->snext) {
@@ -3280,8 +3280,7 @@ tile(Monitor *m)
 	if(n > m->nmaster) {
 		n1 = (m->ltaxis[2] != 1 || w2 < (bh + m->gappx + 2 * borderpx) * (n - m->nmaster + 1)) ? 1 : n - m->nmaster;
 		n2 = (m->ltaxis[2] != 2 || h2 < (bh + m->gappx + 2 * borderpx) * (n - m->nmaster + 1)) ? 1 : n - m->nmaster;
-		if(m->ltaxis[2] != 3) {
-			for(i = 0; c; c = nexttiled(c->next), i++) {
+			for(i = 0, c = o; c; c = nexttiled(c->next), i++) {
 				resize(c, x2, y2, 
 					(m->ltaxis[2] == 1 && i + 1 == n - m->nmaster) ? X2 - x2 - 2 * bw - m->gappx : w2 * (n1 > 1 ? (c->cfact / sfacts) : 1) - 2 * bw - m->gappx, 
 					(m->ltaxis[2] == 2 && i + 1 == n - m->nmaster) ? Y2 - y2 - 2 * bw - m->gappx : h2 * (n2 > 1 ? (c->cfact / sfacts) : 1) - 2 * bw - m->gappx,
@@ -3291,8 +3290,8 @@ tile(Monitor *m)
 				if(n2 > 1)
 					y2 = c->y + HEIGHT(c) + m->gappx;
 			}
-		} else {
-			for(i = 0; c; c = nexttiled(c->next), i++)
+		if(m->ltaxis[2] == 3) {
+			for(i = 0, c = o; c; c = nexttiled(c->next), i++)
 				XMoveWindow(dpy, c->win, WIDTH(c) * -2, c->y);
 			for (s = m->stack; s; s = s->snext) {
 				if (!ISVISIBLE(s) || s->isfloating)
