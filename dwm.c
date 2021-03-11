@@ -740,8 +740,7 @@ buttonpress(XEvent *e)
 	Monitor *m;
 	XButtonPressedEvent *ev = &e->xbutton;
 	lastbutton = ev->button;
-	int stw = 0;
-	stw = getsystraywidth();
+	int stw = getsystraywidth();
 
 	columns = LENGTH(tags) / tagrows + ((LENGTH(tags) % tagrows > 0) ? 1 : 0);
 	click = ClkRootWin;
@@ -827,7 +826,7 @@ buttonpress(XEvent *e)
 		else if(ev->x < x + blw + columns * bh / tagrows)
 			click = ClkLtSymbol;
 		else
-			drawbartabgroups(m, x, stw, ev->x);
+			drawbartabgroups(m, x + stw, stw, ev->x);
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
 		restack(selmon);
@@ -1406,7 +1405,8 @@ void drawbartabgroups(Monitor *m, int x, int stw, int passx) {
 		tabwidth += (tg->n == tg->i + 1 ?  tabgroupwidth % tg->n : 0);
 		drawbartab(m, c, tabx, tabwidth, tg->active);
 		drawbartaboptionals(m, c, tabx, tabwidth, tg->active);
-		if (m ->lt[m->sellt]->arrange == tile) {
+
+		if (m ->lt[m->sellt]->arrange == tile && abs(m->ltaxis[0]) != 2) {
 			if (passx > 0 && passx > tabx && passx < tabx + tabwidth) {
 				focus(c);
 				restack(selmon);
@@ -1414,7 +1414,10 @@ void drawbartabgroups(Monitor *m, int x, int stw, int passx) {
 		} else {
 			unsigned int columns;
 			columns = LENGTH(tags) / tagrows + ((LENGTH(tags) % tagrows > 0) ? 1 : 0);
-			if (passx > 0 && passx > (x + blw + columns * bh / tagrows) + (m->ww - stw - (x + blw + columns * bh / tagrows)) / tg->n * tg->i && passx < (x + blw + columns * bh / tagrows) + (m->ww - stw - (x + blw + columns * bh / tagrows)) / tg->n * tg->i + (m->ww - stw - (x + blw + columns * bh / tagrows)) / tg->n ) {
+			if (passx > 0
+					&& passx > (x + blw + columns * bh / tagrows) + (m->ww - (x + blw + columns * bh / tagrows)) / tg->n * tg->i - stw
+					&& passx < (x + blw + columns * bh / tagrows) + (m->ww - (x + blw + columns * bh / tagrows)) / tg->n * (tg->i + 1) - stw)
+			{
 				focus(c);
 				restack(selmon);
 			}
