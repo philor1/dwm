@@ -2105,11 +2105,9 @@ monocle(Monitor *m)
 	if (c && !c->isfloating) {
 		XMoveWindow(dpy, c->win, m->wx, m->wy);
 		if (abs(m->showbar) + abs(m->showebar) == 0)
-		resize(c, m->wx - c->bw, m->wy - c->bw, m->ww, m->wh, 0, 0);
-		else if (abs(m->showbar) + abs(m->showebar) == 1)
-		resize(c, m->wx - c->bw, m->wy, m->ww, m->wh - c->bw, 0, 0);
+			resize(c, m->wx - c->bw, m->wy - c->bw, m->ww, m->wh, 0, 0);
 		else
-		resize(c, m->wx - c->bw, m->wy, m->ww, m->wh - c->bw, 0, 0);
+			resize(c, m->wx - c->bw, m->wy, m->ww, m->wh - c->bw, 0, 0);
 		c = c->snext;
 	}
 	for (; c; c = c->snext)
