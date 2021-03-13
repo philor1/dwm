@@ -1354,7 +1354,12 @@ drawbars(void)
 void drawbartabgroups(Monitor *m, int x, int stw, int passx) {
 	Client *c;
 	TabGroup *tg_head = NULL, *tg, *tg2;
-	int tabwidth, tabx, tabgroupwidth;
+	int tabwidth, tabx, tabgroupwidth, bw;
+
+	if (notileborder == 1 && m->gappx > borderpx)
+		bw = 0;
+	else
+		bw = borderpx;
 
 	// Calculate
 	if (NULL != m->lt[m->sellt]->arrange) {
@@ -1364,7 +1369,7 @@ void drawbartabgroups(Monitor *m, int x, int stw, int passx) {
 				if (!tg || (tg && tg->x != c->x - m->mx)) {
 					tg2 = calloc(1, sizeof(TabGroup));
 					tg2->start = tg2->end = tg2->x = c->x - m->mx;
-					tg2->end += c->w + 2 * borderpx;
+					tg2->end += c->w + 2 * bw;
 					if (tg) { tg->next = tg2; } else { tg_head = tg2; }
 				}
 			}

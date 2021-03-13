@@ -207,7 +207,14 @@ drw_clr_create(Drw *drw, Clr *dest, const char *clrname, unsigned int alpha)
 		die("error, cannot allocate color '%s'", clrname);
 
 	dest->pixel = (dest->pixel & 0x00ffffffU) | (alpha << 24);
+
 //	dest->pixel =(unsigned char)(0xff * alpha) << 24;
+
+//	dest->color.red   *= alpha;
+//	dest->color.green *= alpha;
+//	dest->color.blue  *= alpha;
+//	dest->color.alpha = (unsigned short)(0xffff * alpha);
+//	dest->pixel = (dest->pixel & 0x00000000U) | ((alpha << 24) + (unsigned char)(dest->color.red / 0xffff.0p0 * 0xff) + ((unsigned char)(dest->color.green / 0xffff.0p0 * 0xff) << 8) + (unsigned char)(dest->color.blue / 0xffff.0p0 * 0xff));
 }
 
 /* Wrapper to create color schemes. The caller has to call free(3) on the
