@@ -161,19 +161,19 @@ static char *statuscmds[][5] = {
 	/* button4 */	"xbacklight -inc 1; kill -47 $(pidof dwmblocks)",
 	/* button5 */	"xbacklight -dec 1; kill -47 $(pidof dwmblocks)" },
 /* TIME */ {
-	/* button1 */	"PID=$(ps aux | grep 'st -c dbar -n calen' | grep -v grep | awk '{print $2}'); if [[ -z $PID ]] ; then st -c dbar -n calen -e calen; else killall calen; fi",
-	/* button2 */   "PID=$(ps aux | grep 'st -c dbar -n calcurse' | grep -v grep | awk '{print $2}'); if [[ -z $PID ]] ; then st -c dbar -n calcurse -e calcurse; else killall calcurse; fi",
+	/* button1 */	"PID=$(ps aux | grep 'st -c dbar -n calen' | grep -v grep | awk '{print $2}'); if [ -z $PID ] ; then st -c dbar -n calen -e calen; else killall calen; fi",
+	/* button2 */   "PID=$(ps aux | grep 'st -c dbar -n calcurse' | grep -v grep | awk '{print $2}'); if [ -z $PID ] ; then st -c dbar -n calcurse -e calcurse; else killall calcurse; fi",
 	/* button3 */   NULL,
 	/* button4 */   NULL,
 	/* button5 */   NULL },
 /* CPU */ {
-	/* button1 */	"PID=$(ps aux | grep 'st -c dbar -n htop' | grep -v grep | awk '{print $2}'); if [[ -z $PID ]] ; then st -c dbar -n htop -e htop; else killall htop; fi",
+	/* button1 */	"PID=$(ps aux | grep 'st -c dbar -n htop' | grep -v grep | awk '{print $2}'); if [ -z $PID ] ; then st -c dbar -n htop -e htop; else killall htop; fi",
 	/* button2 */   NULL,
 	/* button3 */   NULL,
 	/* button4 */   NULL,
 	/* button5 */   NULL },
 /* RAM */ {
-	/* button1 */	"PID=$(ps aux | grep 'st -c dbar -n psmem' | grep -v grep | awk '{print $2}'); if [[ -z $PID ]] ; then st -c dbar -n psmem -e psmem; else killall psmem; fi",
+	/* button1 */	"PID=$(ps aux | grep 'st -c dbar -n psmem' | grep -v grep | awk '{print $2}'); if [ -z $PID ] ; then st -c dbar -n psmem -e psmem; else killall psmem; fi",
 	/* button2 */   NULL,
 	/* button3 */   NULL,
 	/* button4 */   NULL,
