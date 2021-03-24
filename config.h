@@ -149,9 +149,9 @@ static char *statuscmds[][5] = {
 /* START */ //{NULL,NULL,NULL,NULL,NULL},
 //  2> /dev/null
 /* VOL */ {
-	/* button1 */	"killall pavucontrol; audiosel alsa; xsetroot -name 'fsignal:4'; kill -45 $(pidof dwmblocks)",
-	/* button2 */	"/usr/bin/amixer set Master toggle; kill -45 $(pidof dwmblocks)",
-	/* button3 */	"killall alsamixer; audiosel pulse; xsetroot -name 'fsignal:5'; kill -45 $(pidof dwmblocks)",
+	/* button1 */	"audiosel -o",
+	/* button2 */	"audiosel -s",
+	/* button3 */	"/usr/bin/amixer set Master toggle; kill -45 $(pidof dwmblocks)",
 	/* button4 */	"/usr/bin/amixer -q sset Master 5%+; kill -45 $(pidof dwmblocks)",
 	/* button5 */	"/usr/bin/amixer -q sset Master 5%-; kill -45 $(pidof dwmblocks)" },
 /* BKL */ {
