@@ -1381,7 +1381,7 @@ void drawbartabgroups(Monitor *m, int x, int stw, int passx) {
 		tg_head->end = m->ww;
 	}
 	for (c = m->clients; c; c = c->next) {
-		if (!ISVISIBLE(c) || (c->isfloating && tg_head->next != NULL)) continue;
+		if (!ISVISIBLE(c) || (c->isfloating)) continue;
 		for (tg = tg_head; tg && tg->x != c->x - m->mx && tg->next; tg = tg->next);
 		if (m->sel == c) { tg->active = True; }
 		tg->n++;
@@ -1403,7 +1403,7 @@ void drawbartabgroups(Monitor *m, int x, int stw, int passx) {
 	drw_setscheme(drw, scheme[SchemeNorm]);
 	drw_rect(drw, x, 0, m->ww - stw - x, bh, 1, 1);
 	for (c = m->clients; c; c = c->next) {
-		if (!ISVISIBLE(c) || (c->isfloating && tg_head->next != NULL)) continue;
+		if (!ISVISIBLE(c) || (c->isfloating)) continue;
 		for (tg = tg_head; tg && tg->x != c->x - m->mx && tg->next; tg = tg->next);
 		tabgroupwidth = (MIN(tg->end, m->ww - stw) - MAX(x, tg->start));
 		tabwidth = (tabgroupwidth / tg->n);
@@ -1456,12 +1456,6 @@ void drawbartaboptionals(Monitor *m, Client *c, int x, int w, int tabgroup_activ
 	int i, draw_grid, nclienttags, nviewtags;
 
 	if (!c) return;
-
-	// Box indicator for floating window flag
-	if (BARTABGROUPS_FLOATINDICATOR && c->isfloating) {
-		drw_rect(drw, x + BARTABGROUPS_INDICATORSPADPX,
-			2, BARTABGROUPS_FLOATPX, BARTABGROUPS_FLOATPX, 0, 0);
-	}
 
 	// Tag Grid indicators
 	draw_grid = BARTABGROUPS_TAGSINDICATOR;
