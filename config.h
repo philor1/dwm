@@ -8,9 +8,9 @@
 
 /* See LICENSE file for copyright and license details. */
 
-#define BARTABGROUPS_BORDERS 1         // 0 = disable, 1 = enable
 #define BARTABGROUPS_BOTTOMBORDER 1    // 0 = disable, 1 = enable
-#define BARTABGROUPS_FUZZPX 5         // # pixels cutoff between bartab groups to merge (e.g. max gaps px)
+#define BARTABGROUPS_TAB3D 1           // 0 = disable, 1 = enable
+#define BARTABGROUPS_FUZZPX 5          // # pixels cutoff between bartab groups to merge (e.g. max gaps px)
 #define BARTABGROUPS_TAGSINDICATOR 1   // 0 = disable, 1 = enable when >1 client or view tag, 2 = enable always
 #define BARTABGROUPS_TAGSPX 5          // # pixels for tag grid boxes
 #define BARTABGROUPS_TAGSROWS 2        // # rows in tag grid
@@ -35,27 +35,43 @@ static const char dmenufont[]       = "TerminessTTF Nerd Font:pixelsize=16";
 //static const char dmenufont[]       = "TerminessTTF Nerd Font:pixelsize=18";
 //static const char dmenufont[]       = "GohuFont Nerd Font:pixelsize=16";
 static const char *fonts[]          = { dmenufont };
-static char col_alt[]               = "#005577";
-static char col_bg[]                = "#222222";
-static char col_fg[]                = "#eeeeee";
-static char col_inact[]             = "#444444";
-static char col_act[]               = "#bbbbbb";
-static char col_sel[]               = "#005577";
+static char bar_fg[]		= "#eeeeee";
+static char bar_bg[]		= "#222222";
+static char bar_brd[]		= "#222222";
+static char bar_flo[]		= "#222222";
+static char tag_fg[]		= "#005577";
+static char tag_bg[]		= "#eeeeee";
+static char tag_brd[]		= "#222222";
+static char tag_flo[]		= "#222222";
+static char brd_fg[]		= "#eeeeee";
+static char brd_bg[]		= "#222222";
+static char brd_brd[]		= "#444444";
+static char brd_flo[]		= "#444444";
+static char foc_fg[]		= "#222222";
+static char foc_bg[]		= "#eeeeee";
+static char foc_brd[]		= "#444444";
+static char foc_flo[]		= "#bbbbbb";
+static char unf_fg[]		= "#eeeeee";
+static char unf_bg[]		= "#444444";
+static char unf_brd[]		= "#222222";
+static char unf_flo[]		= "#222222";
 static const unsigned int transp    = 0;
 static const unsigned int semitr    = 210;
 static char *colors[][4] = {
-    /*                        fg            bg          border      float       */
-    [SchemeNorm] =          { col_fg,		col_bg,		col_bg,		col_inact	},
-    [SchemeSel]  =          { col_bg,		col_fg, 	col_fg,		col_fg		},
-    [SchemeTabActiveGroup]= { col_alt,		col_act,	col_sel,	col_fg		},	// ...  ...  taggrid-selected taggrid-bg
-    [SchemeTabInactive]   = { col_alt,		col_act,	col_inact, 	col_bg  	}	// ...  ...  small-gap-color  taggrid-unsel-square
+    /*                    fg            bg          border      float       */
+    [SchemeBar] =		{ bar_fg,		bar_bg,		bar_brd,	bar_flo		},
+    [SchemeTag] =		{ tag_fg,		tag_bg,		tag_brd,	tag_flo		},
+    [SchemeBorder] =	{ brd_fg,		brd_bg,		brd_brd,	brd_flo		},
+    [SchemeFocus] =		{ foc_fg,		foc_bg,		foc_brd,	foc_flo		},
+    [SchemeUnfocus] =	{ unf_fg,		unf_bg,		unf_brd,	unf_flo  	}
 };
 static const unsigned int alphas[][4] = {
-    /*                        fg            bg          border      float       */
-    [SchemeNorm] =          { OPAQUE,		OPAQUE,		OPAQUE,		OPAQUE		},
-    [SchemeSel]  =          { OPAQUE,		OPAQUE,		OPAQUE,		OPAQUE		},
-    [SchemeTabActiveGroup]= { OPAQUE,		OPAQUE,		OPAQUE,		OPAQUE		},	// ...  ...  taggrid-border   taggrid-bg
-    [SchemeTabInactive]   = { OPAQUE,		OPAQUE,		OPAQUE,		OPAQUE		}	// ...  ...  small-gap-color  taggrid-unsel-square
+    /*                    fg            bg          border      float       */
+    [SchemeBar] =		{ OPAQUE,		OPAQUE,		OPAQUE,		OPAQUE		},
+    [SchemeTag] =		{ OPAQUE,		OPAQUE,		OPAQUE,		OPAQUE		},
+    [SchemeBorder] =	{ OPAQUE,		OPAQUE,		OPAQUE,		OPAQUE		},
+    [SchemeFocus] =		{ OPAQUE,		OPAQUE,		OPAQUE,		OPAQUE		},
+    [SchemeUnfocus] =	{ OPAQUE,		OPAQUE,		OPAQUE,		OPAQUE		}
 };
 
 /* tagging */
@@ -133,7 +149,7 @@ static const Layout layouts[] = {
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_bg, "-nf", col_fg, "-sb", col_sel, "-sf", col_bg, NULL };
+static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", bar_bg, "-nf", bar_fg, "-sb", foc_bg, "-sf", foc_fg, NULL };
 static const char *termcmd[]  = { "st", "-h", "-e", "/home/philipp/.config/zsh/stmux/tmux",  NULL };
 static const char *browser[] = { "qutebrowser", NULL, NULL, NULL, "Qutebrowser" };
 static const char scratchpadname[] = "scratchpad";
