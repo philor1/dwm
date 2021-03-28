@@ -1438,13 +1438,15 @@ void drawbartabgroups(Monitor *m, int x, int stw, int passx) {
 	while (tg_head != NULL) { tg = tg_head; tg_head = tg_head->next; free(tg); }
 }
 
-
 void drawbartab(Monitor *m, Client *c, int x, int w, int tabgroup_active) {
 	if (!c) return;
-	Client *s;
-	int n;
-	for(n = 0, s = nexttiled(m->clients); s; s = nexttiled(s->next), n++);
-	drw_setscheme(drw, scheme[(m->sel == c && n != 1) ? SchemeFocus : SchemeUnfocus]);
+	if (oneclientdimmer == 1) {
+		Client *s;
+		int n;
+		for(n = 0, s = nexttiled(m->clients); s; s = nexttiled(s->next), n++);
+		drw_setscheme(drw, scheme[(m->sel == c && n != 1) ? SchemeFocus : SchemeUnfocus]);
+	} else
+		drw_setscheme(drw, scheme[m->sel == c ? SchemeFocus : SchemeUnfocus]);
 	drw_text(drw, x, -1, w - 2, bh, lrpad / 2, c->name, 0);
 }
 
@@ -1485,15 +1487,25 @@ void drawbartaboptionals(Monitor *m, Client *c, int x, int w, int tabgroup_activ
 
 	// 3D-Tabs
 	if (BARTABGROUPS_TAB3D == 1) {
-		Client *s;
-		int n;
-		for(n = 0, s = nexttiled(m->clients); s; s = nexttiled(s->next), n++);
-		XSetForeground(drw->dpy, drw->gc, (!c->isfloating && m->sel == c && n != 1) ? scheme[SchemeFocus][ColFloat].pixel : scheme[SchemeUnfocus][ColBorder].pixel);
-		XFillRectangle(drw->dpy, drw->drawable, drw->gc, x + w - 2, 0, 1, bh - 2);
-		XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, bh - 2, w - 2, 1);
-		XSetForeground(drw->dpy, drw->gc, (!c->isfloating && m->sel == c && n != 1) ? scheme[SchemeFocus][ColBorder].pixel : scheme[SchemeUnfocus][ColFloat].pixel);
-		XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, 0, w - ((!c->isfloating && m->sel == c && n != 1) ? 2 : 1), 1);
-		XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, 0, 1, bh - ((!c->isfloating && m->sel == c && n != 1) ? 2 : 1));
+
+		if (oneclientdimmer == 1 && !c->isfloating) {
+			Client *s;
+			int n;
+			for(n = 0, s = nexttiled(m->clients); s; s = nexttiled(s->next), n++);
+			XSetForeground(drw->dpy, drw->gc, (m->sel == c && n != 1) ? scheme[SchemeFocus][ColFloat].pixel : scheme[SchemeUnfocus][ColBorder].pixel);
+			XFillRectangle(drw->dpy, drw->drawable, drw->gc, x + w - 2, 0, 1, bh - 2);
+			XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, bh - 2, w - 2, 1);
+			XSetForeground(drw->dpy, drw->gc, (m->sel == c && n != 1) ? scheme[SchemeFocus][ColBorder].pixel : scheme[SchemeUnfocus][ColFloat].pixel);
+			XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, 0, w - ((m->sel == c && n != 1) ? 2 : 1), 1);
+			XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, 0, 1, bh - ((m->sel == c && n != 1) ? 2 : 1));
+		} else if (oneclientdimmer != 1 && !c->isfloating) {
+			XSetForeground(drw->dpy, drw->gc, m->sel == c ? scheme[SchemeFocus][ColFloat].pixel : scheme[SchemeUnfocus][ColBorder].pixel);
+			XFillRectangle(drw->dpy, drw->drawable, drw->gc, x + w - 2, 0, 1, bh - 2);
+			XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, bh - 2, w - 2, 1);
+			XSetForeground(drw->dpy, drw->gc, m->sel == c ? scheme[SchemeFocus][ColBorder].pixel : scheme[SchemeUnfocus][ColFloat].pixel);
+			XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, 0, w - (m->sel == c ? 2 : 1), 1);
+			XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, 0, 1, bh - (m->sel == c ? 2 : 1));
+		}
 	}
 }
 void drawtaggrid(Monitor *m, int *x_pos, unsigned int occ)

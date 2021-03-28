@@ -29,6 +29,7 @@ static const int showbar            = 1;        /* 0 means no bar */
 static const int showebar           = 1;        /* 0 means no extra bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
 static const int notileborder       = 1;        /* 1 disables tiled borders for non-small gaps */
+static const int oneclientdimmer    = 0;        /* 1 makes tab for one client in unfocused color... */
 //static const char dmenufont[]       = "InconsolataLGC Nerd Font:pixelsize=14";
 static const char dmenufont[]       = "TerminessTTF Nerd Font:pixelsize=16";
 //static const char dmenufont[]       = "FantasqueSansMono Nerd Font:pixelsize=16";
