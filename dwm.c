@@ -825,7 +825,7 @@ buttonpress(XEvent *e)
 		else if(ev->x < x + blw + columns * bh / tagrows)
 			click = ClkLtSymbol;
 		else
-			drawbartabgroups(m, x + stw, stw, ev->x);
+			drawbartabgroups(m, x + blw + ((drawtagmask == DRAWTAGGRID) ? columns * bh / tagrows : 0), stw, ev->x);
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
 		restack(selmon);
@@ -1417,11 +1417,9 @@ void drawbartabgroups(Monitor *m, int x, int stw, int passx) {
 				restack(selmon);
 			}
 		} else {
-			unsigned int columns;
-			columns = LENGTH(tags) / tagrows + ((LENGTH(tags) % tagrows > 0) ? 1 : 0);
 			if (passx > 0
-					&& passx > (x + blw + columns * bh / tagrows) + (m->ww - (x + blw + columns * bh / tagrows)) / tg->n * tg->i - stw
-					&& passx < (x + blw + columns * bh / tagrows) + (m->ww - (x + blw + columns * bh / tagrows)) / tg->n * (tg->i + 1) - stw)
+					&& passx > x + (m->ww - x - stw) / tg->n * tg->i
+					&& passx < x + (m->ww - x - stw) / tg->n * (tg->i + 1))
 			{
 				focus(c);
 				restack(selmon);
