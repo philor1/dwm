@@ -231,7 +231,7 @@ struct TabGroup {
 
 /* function declarations */
 static void applyrules(Client *c);
-static int applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact);
+static int applysizehints(Client *c, int *x, int *y, int *w, int *h, int *bw, int interact);
 static void arrange(Monitor *m);
 static void arrangemon(Monitor *m);
 static void attach(Client *c);
@@ -304,8 +304,8 @@ static void pushup(const Arg *arg);
 static void quit(const Arg *arg);
 static Monitor *recttomon(int x, int y, int w, int h);
 static void replaceclient(Client *old, Client *new);
-static void resize(Client *c, int x, int y, int w, int h, int interact);
-static void resizeclient(Client *c, int x, int y, int w, int h);
+static void resize(Client *c, int x, int y, int w, int h, int bw, int interact);
+static void resizeclient(Client *c, int x, int y, int w, int h, int bw);
 static void resizemouse(const Arg *arg);
 static void removesystrayicon(Client *i);
 static void resizerequest(XEvent *e);
@@ -512,7 +512,7 @@ applyrules(Client *c)
 }
 
 int
-applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
+applysizehints(Client *c, int *x, int *y, int *w, int *h, int *bw, int interact)
 {
 	int savew, saveh;
 	int baseismin;
@@ -526,18 +526,18 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 			*x = sw - WIDTH(c);
 		if (*y > sh)
 			*y = sh - HEIGHT(c);
-		if (*x + *w + 2 * c->bw < 0)
+		if (*x + *w + 2 * *bw < 0)
 			*x = 0;
-		if (*y + *h + 2 * c->bw < 0)
+		if (*y + *h + 2 * *bw < 0)
 			*y = 0;
 	} else {
 		if (*x >= m->wx + m->ww)
 			*x = m->wx + m->ww - WIDTH(c);
 		if (*y >= m->wy + m->wh)
 			*y = m->wy + m->wh - HEIGHT(c);
-		if (*x + *w + 2 * c->bw <= m->wx)
+		if (*x + *w + 2 * *bw <= m->wx)
 			*x = m->wx;
-		if (*y + *h + 2 * c->bw <= m->wy)
+		if (*y + *h + 2 * *bw <= m->wy)
 			*y = m->wy;
 	}
 	if (*h < bh)
@@ -581,7 +581,7 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 		if (savew < *w)
 			*w = savew;
 	}
-	return *x != c->x || *y != c->y || *w != c->w || *h != c->h;
+	return *x != c->x || *y != c->y || *w != c->w || *h != c->h || *bw != c->bw;
 }
 
 void
@@ -601,9 +601,15 @@ arrange(Monitor *m)
 void
 arrangemon(Monitor *m)
 {
+	Client *c;
 	strncpy(m->ltsymbol, m->lt[m->sellt]->symbol, sizeof m->ltsymbol);
 	if (m->lt[m->sellt]->arrange)
 		m->lt[m->sellt]->arrange(m);
+	else
+		/* <>< case; rather than providing an arrange function and upsetting other logic that tests for its presence, simply add borders here */
+		for (c = selmon->clients; c; c = c->next)
+			if (ISVISIBLE(c) && c->bw == 0)
+				resize(c, c->x, c->y, c->w - 2*borderpx, c->h - 2*borderpx, borderpx, 0);
 }
 
 void
@@ -1352,7 +1358,10 @@ drawbartabgroups(Monitor *m, int x, int stw, int passx) {
 	TabGroup *tg_head = NULL, *tg, *tg2;
 	int tabwidth, tabx, tabgroupwidth, bw;
 
-	bw = borderpx;
+	if (notileborder == 1 && m->gappx > borderpx)
+		bw = 0;
+	else
+		bw = borderpx;
 
 	// Calculate
 	if (NULL != m->lt[m->sellt]->arrange) {
@@ -2177,9 +2186,9 @@ monocle(Monitor *m)
 	if (c && !c->isfloating) {
 		XMoveWindow(dpy, c->win, m->wx - c->bw, m->wy);
 		if (abs(m->showbar) + abs(m->showebar) == 0)
-			resize(c, m->wx - c->bw, m->wy - c->bw, m->ww, m->wh, 0);
+			resize(c, m->wx - c->bw, m->wy - c->bw, m->ww, m->wh, 0, 0);
 		else
-			resize(c, m->wx - c->bw, m->wy, m->ww, m->wh - c->bw, 0);
+			resize(c, m->wx - c->bw, m->wy, m->ww, m->wh - c->bw, 0, 0);
 		c = c->snext;
 	}
 	for (; c; c = c->snext)
@@ -2264,7 +2273,7 @@ movemouse(const Arg *arg)
 			&& (abs(nx - c->x) > snap || abs(ny - c->y) > snap))
 				togglefloating(NULL);
 			if (!selmon->lt[selmon->sellt]->arrange || c->isfloating)
-				resize(c, nx, ny, c->w, c->h, 1);
+				resize(c, nx, ny, c->w, c->h, c->bw, 1);
 			break;
 		}
 	} while (ev.type != ButtonRelease);
@@ -2330,7 +2339,7 @@ moveresize(const Arg *arg) {
 
 	XRaiseWindow(dpy, c->win);
 	Bool xqp = XQueryPointer(dpy, root, &dummy, &dummy, &msx, &msy, &dx, &dy, &dui);
-	resize(c, nx, ny, nw, nh, True);
+	resize(c, nx, ny, nw, nh, c->bw, True);
 
 	/* move cursor along with the window to avoid problems caused by the sloppy focus */
 	if (xqp && ox <= msx && (ox + ow) >= msx && oy <= msy && (oy + oh) >= msy)
@@ -2422,7 +2431,7 @@ moveresizeedge(const Arg *arg) {
 
 	XRaiseWindow(dpy, c->win);
 	Bool xqp = XQueryPointer(dpy, root, &dummy, &dummy, &msx, &msy, &dx, &dy, &dui);
-	resize(c, nx, ny, nw, nh, True);
+	resize(c, nx, ny, nw, nh, c->bw, True);
 
 	/* move cursor along with the window to avoid problems caused by the sloppy focus */
 	if (xqp && ox <= msx && (ox + ow) >= msx && oy <= msy && (oy + oh) >= msy) {
@@ -2641,21 +2650,21 @@ replaceclient(Client *old, Client *new)
 
 	if (ISVISIBLE(new)) {
 		if (new->isfloating)
-			resize(new, old->x, old->y, new->w - 2*new->bw, new->h - 2*new->bw, 0);
+			resize(new, old->x, old->y, new->w - 2*new->bw, new->h - 2*new->bw, 0, 0);
 		else
-			resize(new, old->x, old->y, old->w - 2*new->bw, old->h - 2*new->bw, 0);
+			resize(new, old->x, old->y, old->w - 2*new->bw, old->h - 2*new->bw, 0, 0);
 	}
 }
 
 void
-resize(Client *c, int x, int y, int w, int h, int interact)
+resize(Client *c, int x, int y, int w, int h, int bw, int interact)
 {
-	if (applysizehints(c, &x, &y, &w, &h, interact))
-		resizeclient(c, x, y, w, h);
+	if (applysizehints(c, &x, &y, &w, &h, &bw, interact))
+		resizeclient(c, x, y, w, h, bw);
 }
 
 void
-resizeclient(Client *c, int x, int y, int w, int h)
+resizeclient(Client *c, int x, int y, int w, int h, int bw)
 {
 	XWindowChanges wc;
 
@@ -2665,8 +2674,9 @@ resizeclient(Client *c, int x, int y, int w, int h)
 	c->oldh = c->h; c->h = wc.height = h;
 	if (c->isfloating && c->floatborderpx >= 0)
 		wc.border_width = c->floatborderpx;
-	else
-		wc.border_width = c->bw;
+	else {
+		c->oldbw = c->bw; c->bw = wc.border_width = bw;
+	}
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
 	configure(c);
 	XSync(dpy, False);
@@ -2732,7 +2742,7 @@ resizemouse(const Arg *arg)
 					togglefloating(NULL);
 			}
 			if (!selmon->lt[selmon->sellt]->arrange || c->isfloating)
-				resize(c, nx, ny, nw, nh, 1);
+				resize(c, nx, ny, nw, nh, c->bw, 1);
 			break;
 		}
 	} while (ev.type != ButtonRelease);
@@ -2855,9 +2865,9 @@ rioposition(Client *c, int x, int y, int w, int h)
 
 	c->isfloating = 1;
 	if (riodraw_borders)
-		resizeclient(c, x, y, w - (c->bw * 2), h - (c->bw * 2));
+		resizeclient(c, x, y, w - (c->bw * 2), h - (c->bw * 2), c->bw);
 	else
-		resizeclient(c, x - c->bw, y - c->bw, w, h);
+		resizeclient(c, x - c->bw, y - c->bw, w, h, c->bw);
 	drawbar(c->mon);
 	arrange(c->mon);
 
@@ -3062,20 +3072,18 @@ setactfullscreen(Client *c)
 	if (!c->isactfullscreen) {
 		c->isactfullscreen = 1;
 		c->oldstate = c->isfloating;
-		c->oldbw = c->bw;
-		c->bw = 0;
 		c->isfloating = 1;
-		resizeclient(c, c->mon->mx, c->mon->my, c->mon->mw, c->mon->mh);
+		resizeclient(c, c->mon->mx, c->mon->my, c->mon->mw, c->mon->mh, 0);
 		XRaiseWindow(dpy, c->win);
 	} else if (c->isactfullscreen){
 		c->isactfullscreen = 0;
 		c->isfloating = c->oldstate;
-		c->bw = c->oldbw;
 		c->x = c->oldx;
 		c->y = c->oldy;
 		c->w = c->oldw;
 		c->h = c->oldh;
-		resizeclient(c, c->x, c->y, c->w, c->h);
+		c->bw = c->oldbw;
+		resizeclient(c, c->x, c->y, c->w, c->h, c->bw);
 		arrange(c->mon);
 	}
 }
@@ -3284,7 +3292,8 @@ showhide(Client *c)
 		/* show clients top down */
 		XMoveWindow(dpy, c->win, c->x, c->y);
 		if (!c->mon->lt[c->mon->sellt]->arrange || c->isfloating)
-			resize(c, c->x, c->y, c->w, c->h, 0);
+			resize(c, c->x, c->y, c->w, c->h, c->bw, 0);
+//			resize(c, c->x, c->y, c->w, c->h, borderpx, 0);
 		showhide(c->snext);
 	} else {
 		/* hide clients bottom up */
@@ -3564,7 +3573,10 @@ tile(Monitor *m)
 	Client *c, *s, *d, *t, *o;
 	float mfacts = 0, sfacts = 0;
 
-	bw = borderpx;
+	if (notileborder == 1 && m->gappx > borderpx)
+		bw = 0;
+	else
+		bw = borderpx;
 
 	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++) {
 		if (n < m->nmaster)
@@ -3654,7 +3666,7 @@ tile(Monitor *m)
 		resize(c, x1, y1,
 			(m->ltaxis[1] == 1 && i + 1 == m->nmaster) ? X1 - x1 - 2 * bw - m->gappx : w1 * (n1 > 1 ? (c->cfact / mfacts) : 1) - 2 * bw - m->gappx,
 			(m->ltaxis[1] == 2 && i + 1 == m->nmaster) ? Y1 - y1 - 2 * bw - m->gappx : h1 * (n2 > 1 ? (c->cfact / mfacts) : 1) - 2 * bw - m->gappx,
-			False);
+			bw, 0);
 		if(n1 > 1)
 			x1 = c->x + WIDTH(c) + m->gappx;
 		if(n2 > 1)
@@ -3671,7 +3683,7 @@ tile(Monitor *m)
 			if (i >= m->nmaster)
 				continue;
 			XMoveWindow(dpy, t->win, x1, y1);
-//			resize(t, x1, y1, w1 - 2 * bw - m->gappx, h1 - 2 * bw - m->gappx, False);
+//			resize(t, x1, y1, w1 - 2 * bw - m->gappx, h1 - 2 * bw - m->gappx, bw, 0);
 			break;
 		}
 	}
@@ -3684,7 +3696,7 @@ tile(Monitor *m)
 				resize(c, x2, y2, 
 					(m->ltaxis[2] == 1 && i + 1 == n - m->nmaster) ? X2 - x2 - 2 * bw - m->gappx : w2 * (n1 > 1 ? (c->cfact / sfacts) : 1) - 2 * bw - m->gappx, 
 					(m->ltaxis[2] == 2 && i + 1 == n - m->nmaster) ? Y2 - y2 - 2 * bw - m->gappx : h2 * (n2 > 1 ? (c->cfact / sfacts) : 1) - 2 * bw - m->gappx,
-					False);
+					bw, 0);
 				if(n1 > 1)
 					x2 = c->x + WIDTH(c) + m->gappx;
 				if(n2 > 1)
@@ -3699,7 +3711,7 @@ tile(Monitor *m)
 				for (i = 0, c = nexttiled(m->clients); c && c != s; c = nexttiled(c->next), i++);
 				if (i < m->nmaster)
 					continue;
-				resize(c, x2, y2, w2 - 2 * bw - m->gappx, h2 - 2 * bw - m->gappx, False);
+				resize(c, x2, y2, w2 - 2 * bw - m->gappx, h2 - 2 * bw - m->gappx, bw, 0);
 				XMoveWindow(dpy, c->win, x2, y2);
 				break;
 			}
@@ -3771,13 +3783,15 @@ togglefloating(const Arg *arg)
 	if (selmon->sel->isfloating)
 		/* restore last known float dimensions */
 		resize(selmon->sel, selmon->sel->sfx, selmon->sel->sfy,
-		       selmon->sel->sfw, selmon->sel->sfh, False);
+				selmon->sel->sfw - 2 * (borderpx - selmon->sel->bw),
+				selmon->sel->sfh - 2 * (borderpx - selmon->sel->bw),
+				borderpx, 0);
 	else {
 		/* save last known float dimensions */
 		selmon->sel->sfx = selmon->sel->x;
 		selmon->sel->sfy = selmon->sel->y;
-		selmon->sel->sfw = selmon->sel->w;
-		selmon->sel->sfh = selmon->sel->h;
+		selmon->sel->sfw = selmon->sel->w + (selmon->gappx > borderpx ? 2 * borderpx : 0);
+		selmon->sel->sfh = selmon->sel->h + (selmon->gappx > borderpx ? 2 * borderpx : 0);
 	}
 	shadowfloat(selmon->sel);
 	arrange(selmon);
@@ -4311,7 +4325,7 @@ updatesystrayicongeom(Client *i, int w, int h)
 			i->w = w;
 		else
 			i->w = (int) ((float)bh * ((float)w / (float)h));
-		applysizehints(i, &(i->x), &(i->y), &(i->w), &(i->h), False);
+		applysizehints(i, &(i->x), &(i->y), &(i->w), &(i->h), &(i->bw), False);
 		/* force icons into the systray dimensions if they don't want to */
 		if (i->h > bh) {
 			if (i->w == i->h)

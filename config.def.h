@@ -16,6 +16,7 @@ static const int swallowfloating    = 0;        /* 1 means swallow floating wind
 static const int showbar            = 1;        /* 0 means no bar */
 static const int showebar           = 1;        /* 0 means no extra bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
+static const int notileborder       = 1;        /* 1 disables tiled borders for non-small gaps */
 static const unsigned int systraypinning = 0;   /* 0: sloppy systray follows selected monitor, >0: pin systray to monitor X */
 static const unsigned int systrayspacing = 0;   /* systray spacing */
 static const int systraypinningfailfirst = 1;   /* 1: if pinning fails, display systray on the first monitor, False: display systray on the last monitor*/
@@ -93,11 +94,11 @@ static const Rule rules[] = {
 	 *	WM_NAME(STRING) = title
 	 */
 	/* class     instance  title           tags mask  switchtotag  isfloating  isterminal  noswallow  monitor  scratch key  float x,y,w,h   floatborderpx */
-	{ "Gimp",    NULL,     NULL,           0,         0,           1,          0,           0,        -1,      0,           50,50,500,500,  5   },
-	{ "Firefox", NULL,     NULL,           1 << 8,    0,           0,          0,          -1,        -1,      0,           50,50,500,500,  5   },
-	{ "St",      NULL,     NULL,           0,         0,           0,          1,           0,        -1,      0,           50,50,500,500,  5   },
-	{ NULL,      NULL,     "Event Tester", 0,         0,           1,          0,           1,        -1,      0,           50,50,500,500,  5   }, /* xev */
-	{ NULL,      NULL,     "scratchpad",   0,         0,           1,          1,          -1,        -1,     's',          50,50,500,500,  5   },
+	{ "Gimp",    NULL,     NULL,           0,         0,           1,          0,           0,        -1,      0,           50,50,500,500,  2   },
+	{ "Firefox", NULL,     NULL,           1 << 8,    0,           0,          0,          -1,        -1,      0,           50,50,500,500,  2   },
+	{ "St",      NULL,     NULL,           0,         0,           0,          1,           0,        -1,      0,           50,50,500,500,  2   },
+	{ NULL,      NULL,     "Event Tester", 0,         0,           1,          0,           1,        -1,      0,           50,50,500,500,  2   }, /* xev */
+	{ NULL,      NULL,     "scratchpad",   0,         0,           1,          1,          -1,        -1,     's',          50,50,500,500,  2   },
 };
 
 /* layout(s) */
