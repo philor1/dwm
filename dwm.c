@@ -329,6 +329,7 @@ static void setlayout(const Arg *arg);
 static void setcfact(const Arg *arg);
 static void setmfact(const Arg *arg);
 static void setup(void);
+static void shadowfloat(Client *c);
 static void seturgent(Client *c, int urg);
 static void showhide(Client *c);
 static void sigchld(int unused);
@@ -418,6 +419,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 	[UnmapNotify] = unmapnotify
 };
 static Atom wmatom[WMLast], netatom[NetLast], xatom[XLast];
+static Atom wunshadow;
 static int running = 1;
 static Cur *cursor[CurLast];
 static Clr **scheme;
@@ -1608,6 +1610,7 @@ focus(Client *c)
 		attachstack(c);
 		grabbuttons(c, 1);
 		XSetWindowBorder(dpy, c->win, scheme[SchemeBorder][ColFg].pixel);
+		shadowfloat(c);
 		setfocus(c);
 	} else {
 		XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
@@ -2053,6 +2056,7 @@ manage(Window w, XWindowAttributes *wa)
 		XRaiseWindow(dpy, c->win);
 	if (c->isfloating)
 		XSetWindowBorder(dpy, w, scheme[SchemeBorder][ColFloat].pixel);
+	shadowfloat(c);
 	/* Do not attach client if it is being swallowed */
 	if (term && swallow(term, c)) {
 		/* Do not let swallowed client steal focus unless the terminal has focus */
@@ -2770,7 +2774,9 @@ restack(Monitor *m)
 				wc.sibling = c->win;
 			}
 	}
-	XSync(dpy, False);
+	for (c = m->stack; c; c = c->snext)
+		shadowfloat(c);
+    XSync(dpy, False);
 	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 }
 
@@ -3198,7 +3204,8 @@ setup(void)
 	xatom[Manager] = XInternAtom(dpy, "MANAGER", False);
 	xatom[Xembed] = XInternAtom(dpy, "_XEMBED", False);
 	xatom[XembedInfo] = XInternAtom(dpy, "_XEMBED_INFO", False);
-	/* init cursors */
+    wunshadow = XInternAtom(dpy, "_COMPTON_SHADOW", False);
+    /* init cursors */
 	cursor[CurNormal] = drw_cur_create(drw, XC_left_ptr);
 	cursor[CurResize] = drw_cur_create(drw, XC_sizing);
 	cursor[CurMove] = drw_cur_create(drw, XC_fleur);
@@ -3248,6 +3255,17 @@ seturgent(Client *c, int urg)
 	wmh->flags = urg ? (wmh->flags | XUrgencyHint) : (wmh->flags & ~XUrgencyHint);
 	XSetWMHints(dpy, c->win, wmh);
 	XFree(wmh);
+}
+
+ void
+shadowfloat(Client *c)
+{
+	if (!c->isfloating && selmon->lt[selmon->sellt]->arrange) {
+		unsigned long shadow[] = { 0x00000000 };
+		XChangeProperty(dpy, c->win, wunshadow, XA_CARDINAL, 32, PropModeReplace, (unsigned char *)shadow, 1);
+	} else {
+		XDeleteProperty(dpy, c->win, wunshadow);
+	}
 }
 
 void
@@ -3754,6 +3772,7 @@ togglefloating(const Arg *arg)
 		selmon->sel->sfw = selmon->sel->w;
 		selmon->sel->sfh = selmon->sel->h;
 	}
+	shadowfloat(selmon->sel);
 	arrange(selmon);
 	arrangemon(selmon);
 }
