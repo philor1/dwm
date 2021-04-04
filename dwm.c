@@ -1973,8 +1973,16 @@ moveresizeedge(const Arg *arg) {
 	nw = c->w;
 	nh = c->h;
 
-	starty = selmon->showbar && topbar ? bh : 0;
-	bp = selmon->showbar && !topbar ? bh : 0;
+	if(abs(selmon->showbar) + abs(selmon->showebar) == 2) {
+		starty = topbar ? 2 * bh : 0;
+		bp = !topbar ? 2 * bh : 0;
+	} else if(abs(selmon->showbar) + abs(selmon->showebar) == 1) {
+		starty = topbar ? bh : 0;
+		bp = !topbar ? bh : 0;
+	} else {
+		starty = 0;
+		bp = 0;
+	}
 
 	if (!c || !arg)
 		return;
