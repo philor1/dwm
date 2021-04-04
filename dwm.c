@@ -514,6 +514,7 @@ applyrules(Client *c)
 int
 applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 {
+	int savew, saveh;
 	int baseismin;
 	Monitor *m = c->mon;
 
@@ -543,36 +544,42 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 		*h = bh;
 	if (*w < bh)
 		*w = bh;
-	if (resizehints || c->isfloating || !c->mon->lt[c->mon->sellt]->arrange) {
+	if ((resizehints && m->gappx > resizehintsbm * borderpx && m ->lt[m->sellt]->arrange != monocle) || c->isfloating || !c->mon->lt[c->mon->sellt]->arrange) {
 		/* see last two sentences in ICCCM 4.1.2.3 */
 		baseismin = c->basew == c->minw && c->baseh == c->minh;
+		savew = *w;
+		saveh = *h;
 		if (!baseismin) { /* temporarily remove base dimensions */
-			*w -= c->basew;
-			*h -= c->baseh;
+			savew -= c->basew;
+			saveh -= c->baseh;
 		}
 		/* adjust for aspect limits */
 		if (c->mina > 0 && c->maxa > 0) {
 			if (c->maxa < (float)*w / *h)
-				*w = *h * c->maxa + 0.5;
+				savew = saveh * c->maxa + 0.5;
 			else if (c->mina < (float)*h / *w)
-				*h = *w * c->mina + 0.5;
+				saveh = savew * c->mina + 0.5;
 		}
 		if (baseismin) { /* increment calculation requires this */
-			*w -= c->basew;
-			*h -= c->baseh;
+			savew -= c->basew;
+			saveh -= c->baseh;
 		}
 		/* adjust for increment value */
 		if (c->incw)
-			*w -= *w % c->incw;
+			savew -= savew % c->incw;
 		if (c->inch)
-			*h -= *h % c->inch;
+			saveh -= saveh % c->inch;
 		/* restore base dimensions */
-		*w = MAX(*w + c->basew, c->minw);
-		*h = MAX(*h + c->baseh, c->minh);
+		savew = MAX(savew + c->basew, c->minw);
+		saveh = MAX(saveh + c->baseh, c->minh);
 		if (c->maxw)
-			*w = MIN(*w, c->maxw);
+			savew = MIN(savew, c->maxw);
 		if (c->maxh)
-			*h = MIN(*h, c->maxh);
+			saveh = MIN(saveh, c->maxh);
+		if (saveh < *h)
+			*h = saveh;
+		if (savew < *w)
+			*w = savew;
 	}
 	return *x != c->x || *y != c->y || *w != c->w || *h != c->h;
 }
