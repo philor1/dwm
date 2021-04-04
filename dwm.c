@@ -2031,8 +2031,12 @@ manage(Window w, XWindowAttributes *wa)
 	XConfigureWindow(dpy, w, CWBorderWidth, &wc);
 	if(c->isfloating)
 		XSetWindowBorder(dpy, w, scheme[SchemeBorder][ColFloat].pixel);
-	else
-		XSetWindowBorder(dpy, w, scheme[SchemeBorder][ColBorder].pixel);
+	else {
+		if ( selmon->gappx > 2 * borderpx)
+			XSetWindowBorder(dpy, w, scheme[SchemeBorder][ColBg].pixel);
+		else
+			XSetWindowBorder(dpy, w, scheme[SchemeBorder][ColBorder].pixel);
+	}
 	configure(c); /* propagates border_width, if size doesn't change */
 	updatewindowtype(c);
 	updatesizehints(c);
@@ -3081,12 +3085,23 @@ setfullscreen(Client *c, int fullscreen)
 void
 setgaps(const Arg *arg)
 {
+	Client *c;
 	if ((arg->i == 0) || (selmon->gappx + arg->i < 0))
 		selmon->gappx = 0;
 	else {
 		if (selmon->gappx + arg->i < 50)
 		selmon->gappx += arg->i;
 		}
+	if ((selmon->gappx == 1 * borderpx && arg->i < 0)) {
+		for (c = nexttiled(selmon->clients); c; c = nexttiled(c->next))
+			XSetWindowBorder(dpy, c->win, scheme[SchemeBorder][ColBorder].pixel);
+		focus(c);
+	}
+	if ((selmon->gappx == 2 * borderpx && arg->i > 0)) {
+		for (c = nexttiled(selmon->clients); c; c = nexttiled(c->next))
+			XSetWindowBorder(dpy, c->win, scheme[SchemeBorder][ColBg].pixel);
+		focus(c);
+	}
 	arrange(selmon);
 }
 
@@ -3867,8 +3882,12 @@ unfocus(Client *c, int setfocus)
 	grabbuttons(c, 0);
 	if(c->isfloating)
 		XSetWindowBorder(dpy, c->win, scheme[SchemeBorder][ColFloat].pixel);
-	else
-		XSetWindowBorder(dpy, c->win, scheme[SchemeBorder][ColBorder].pixel);
+	else {
+		if ( selmon->gappx > borderpx)
+			XSetWindowBorder(dpy, c->win, scheme[SchemeBorder][ColBg].pixel);
+		else
+			XSetWindowBorder(dpy, c->win, scheme[SchemeBorder][ColBorder].pixel);
+	}
 	if (setfocus) {
 		XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
 		XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
