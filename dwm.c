@@ -57,7 +57,7 @@
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
 #define TEXTW(X)                (drw_fontset_getwidth(drw, (X)) + lrpad)
 
-#define OPAQUE                  0xffU
+#define OPAQUE                  1.0
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
