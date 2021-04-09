@@ -37,19 +37,19 @@ static char selbordercolor[]        = "#005577";
 static char selbgcolor[]            = "#005577";
 static const float baralpha = 0.8;
 static const float borderalpha = OPAQUE;
-static char *colors[][3] = {
-    /*               fg           bg           border   */
-	[SchemeNorm] = { normfgcolor, normbgcolor, normbordercolor },
-	[SchemeSel]  = { selfgcolor,  selbgcolor,  selbordercolor  },
-	[SchemeTabActiveGroup]  =   { normbordercolor, normfgcolor, normbordercolor },
-	[SchemeTabInactive]     =   { normbgcolor,     normfgcolor, normbgcolor }
+static char *colors[][4] = {
+    /*        				       fg    		       bg      	     border 		float			  */
+	[SchemeNorm] 			=	{ normfgcolor, 		normbgcolor, normbordercolor, normbordercolor	},
+	[SchemeSel] 			=	{ selfgcolor, 		selbgcolor,  selbordercolor,  selbordercolor 	},
+	[SchemeTabActiveGroup]  =   { normbordercolor,	normfgcolor, normbordercolor, normbordercolor	},
+	[SchemeTabInactive]     =   { normbgcolor,    	normfgcolor, normbgcolor, 	  normbgcolor 	 	}
 };
-static const float alphas[][3]      = {
-	/*               fg      bg        border     */
-	[SchemeNorm] = { OPAQUE, baralpha, borderalpha },
-	[SchemeSel]  = { OPAQUE, baralpha, borderalpha },
-	[SchemeTabActiveGroup]  =   { OPAQUE, baralpha, borderalpha },
-	[SchemeTabInactive]     =   { OPAQUE, baralpha, borderalpha }
+static const float alphas[][4]      = {
+	/*           				    fg      bg        border  		float	   */
+	[SchemeNorm] 			=	{ OPAQUE, baralpha, borderalpha, borderalpha },
+	[SchemeSel]  			=	{ OPAQUE, baralpha, borderalpha, borderalpha },
+	[SchemeTabActiveGroup]  =   { OPAQUE, baralpha, borderalpha, borderalpha },
+	[SchemeTabInactive]     =   { OPAQUE, baralpha, borderalpha, borderalpha }
 };
 
 /* tagging */
