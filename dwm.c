@@ -909,11 +909,9 @@ configurerequest(XEvent *e)
 		if (ev->value_mask & CWBorderWidth)
 			c->bw = ev->border_width;
 		else if (c->isfloating || !selmon->lt[selmon->sellt]->arrange) {
-			if (c->ignorecfgreqpos && c->ignorecfgreqsize)
-				return;
 
 			m = c->mon;
-			if (c->ignorecfgreqpos) {
+			if (!c->ignorecfgreqpos) {
 				if (ev->value_mask & CWX) {
 					c->oldx = c->x;
 					c->x = m->mx + ev->x;
@@ -923,7 +921,7 @@ configurerequest(XEvent *e)
 					c->y = m->my + ev->y;
 				}
 			}
-			if (c->ignorecfgreqsize) {
+			if (!c->ignorecfgreqsize) {
 				if (ev->value_mask & CWWidth) {
 					c->oldw = c->w;
 					c->w = ev->width;
@@ -2654,8 +2652,8 @@ int
 riodraw(Client *c, const char slopstyle[])
 {
 	int i;
-	char str[100];
-	char strout[100];
+	char str[100] = {0};
+	char strout[100] = {0};
 	char tmpstring[30] = {0};
 	char slopcmd[100] = "slop -f x%xx%yx%wx%hx ";
 	int firstchar = 0;
