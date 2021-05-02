@@ -736,7 +736,7 @@ buttonpress(XEvent *e)
 			}
 			arg.ui = 1 << i;
 		}
-		else if(ev->x < x + blw + columns * bh / tagrows)
+		else if(ev->x < x + blw + ((drawtagmask & DRAWTAGGRID) ? columns * bh / tagrows : 0))
 			click = ClkLtSymbol;
 		else
 			drawbartabgroups(m, x + blw, stw, ev->x);
@@ -1134,8 +1134,6 @@ drawbar(Monitor *m)
 {
 	int indn;
 	int w, x = 0, stw = 0;
-	int boxs = drw->fonts->h / 9;
-	int boxw = drw->fonts->h / 6 + 2;
 	unsigned int i, occ = 0, urg = 0;
 	Client *c;
 
@@ -3323,7 +3321,7 @@ void switchtag(const Arg *arg)
     int col, row;
     Arg new_arg;
 
-    columns = LENGTH(tags) / tagrows + ((LENGTH(tags) % tagrows > 0) ? 1 : 0);
+    columns = (drawtagmask & DRAWCLASSICTAGS) ? LENGTH(tags) : LENGTH(tags) / tagrows + ((LENGTH(tags) % tagrows > 0) ? 1 : 0);
 
     for (i = 0; i < LENGTH(tags); ++i) {
         if (!(selmon->tagset[selmon->seltags] & 1 << i)) {
