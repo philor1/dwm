@@ -208,7 +208,7 @@ static void destroynotify(XEvent *e);
 static void detach(Client *c);
 static void detachstack(Client *c);
 static Monitor *dirtomon(int dir);
-static void drawebar(char *text, Monitor *m);
+static void drawebar(char *text, Monitor *m, int xpos);
 static void drawbar(Monitor *m);
 static void drawbars(void);
 static void drawbartabgroups(Monitor *m, int x, int stw, int passx);
@@ -352,6 +352,8 @@ static Colormap cmap;
 
 static int dwmblockssig;
 pid_t dwmblockspid = 0;
+
+unsigned int esep = 0, eblock = 0;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -988,134 +990,159 @@ drawbars(void)
 }
 
 void
-drawebar(char* stext, Monitor *m)
+drawebar(char* stext, Monitor *m, int xpos)
 {
-	int i, w, len;
-	int x = 0;
+	int w, len;
 	short isCode = 0;
 	char *text;
 	char *p;
+
+	int x = 0, sep = 0, block = 0;
+	int k = -1, i = -1;
+	char ch, blocktext[1024];
 
 	drw_rect(drw, 0, 0, selmon->ww, bh, 1, 1);
 	len = strlen(stext);
 	if (!(text = (char*) malloc(sizeof(char)*(len + 1))))
 		die("malloc");
-	p = text;
-	copyvalidchars(text, stext);
 
+	p = text;
+
+	while (stext[++k]) {
+		blocktext[++i] = stext[k];
+		if ((unsigned char)stext[k] < ' ') {
+			ch = stext[k];
+			stext[k] = blocktext[i] = '\0';
+			while (blocktext[++i])
+				blocktext[i] = '\0';
+			block = status2dtextlength(stext);
+			if (xpos && xpos >= sep && xpos <= sep + block) {
+				esep = sep;
+				eblock = block;
+			}
+			drw_setscheme(drw, scheme[LENGTH(colors)]);
+			if (sep == esep && block == eblock && block) {
+				drw->scheme[ColFg] = scheme[SchemeSel][ColFg];
+				drw->scheme[ColBg] = scheme[SchemeSel][ColBg];
+			} else {
+				drw->scheme[ColFg] = scheme[(BARBORDERS ? SchemeTabInactive : SchemeNorm)][ColFg];
+				drw->scheme[ColBg] = scheme[(BARBORDERS ? SchemeTabInactive : SchemeNorm)][ColBg];
+			}
+
+			/* process status text-element */
+
+			copyvalidchars(text, blocktext);
+			text[len] = '\0';
+			i = -1;
+			while (text[++i]) {
+				if (text[i] == '^' && !isCode) {
+					isCode = 1;
+					text[i] = '\0';
+					w = TEXTW(text) - lrpad;
+					drw_text(drw, x, BARBORDERS == 1 ? -1 : 0, w, bh, 0, text, 0);
+					x += w;
+					/* process code */
+					while (text[++i] != '^') {
+						if (text[i] == 'c') {
+							char buf[8];
+							if (i + 7 >= len) {
+								i += 7;
+								len = 0;
+								break;
+							}
+							memcpy(buf, (char*)text+i+1, 7);
+							buf[7] = '\0';
+							if (sep != esep || block != eblock)
+								drw_clr_create(drw, &drw->scheme[ColFg], buf, alphas[(BARBORDERS ? SchemeTabInactive : SchemeNorm)][ColFg]);
+							i += 7;
+						} else if (text[i] == 'b') {
+							char buf[8];
+							if (i + 7 >= len) {
+								i += 7;
+								len = 0;
+								break;
+							}
+							memcpy(buf, (char*)text+i+1, 7);
+							buf[7] = '\0';
+							if (sep != esep || block != eblock)
+								drw_clr_create(drw, &drw->scheme[ColBg], buf, alphas[(BARBORDERS ? SchemeTabInactive : SchemeNorm)][ColBg]);
+							i += 7;
+						} else if (text[i] == 'd') {
+							if (sep == esep && block == eblock && block) {
+								drw->scheme[ColFg] = scheme[SchemeSel][ColFg];
+								drw->scheme[ColBg] = scheme[SchemeSel][ColBg];
+							} else {
+								drw->scheme[ColFg] = scheme[(BARBORDERS ? SchemeTabInactive : SchemeNorm)][ColFg];
+								drw->scheme[ColBg] = scheme[(BARBORDERS ? SchemeTabInactive : SchemeNorm)][ColBg];
+							}
+						} else if (text[i] == 'r') {
+							int rx = atoi(text + ++i);
+							while (text[++i] != ',');
+							int ry = atoi(text + ++i);
+							while (text[++i] != ',');
+							int rw = atoi(text + ++i);
+							while (text[++i] != ',');
+							int rh = atoi(text + ++i);
+							if (ry < 0)
+								ry = 0;
+							if (rx < 0)
+								rx = 0;
+							drw_rect(drw, rx + x, ry, rw, rh, 1, 0);
+						} else if (text[i] == 'f') {
+							x += atoi(text + ++i);
+						}
+					}
+					text = text + i + 1;
+					len -= i + 1;
+					i = -1;
+					isCode = 0;
+					if (len <= 0)
+						break;
+				}
+			}
+			if (!isCode && len > 0) {
+				w = TEXTW(text) - lrpad;
+				drw_text(drw, x, BARBORDERS == 1 ? -1 : 0, w, bh, 0, text, 0);
+				x += w;
+			}
+			i = -1;
+
+			if (BARBORDERS == 1 && block > 0) {
+				XSetForeground(drw->dpy, drw->gc,scheme[SchemeTabInactive][ColBorder].pixel);
+				XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep, 0, 1, bh - 1);
+				XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep, 0, block - 1, 1);
+				XSetForeground(drw->dpy, drw->gc,scheme[SchemeNorm][ColBorder].pixel);
+				XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep + block - 1, 0, 1, bh - 1);
+				XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep + block - 2, bh - 2, 1, 1);
+				XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep, bh - 1, block, 1);
+			}
+			sep += block;
+			stext[k] = ch;
+			stext += k+1;
+			k = -1;
+		}
+	}
+
+	copyvalidchars(text, stext);
 	drw_setscheme(drw, scheme[LENGTH(colors)]);
 	drw->scheme[ColFg] = scheme[(BARBORDERS ? SchemeTabInactive : SchemeNorm)][ColFg];
 	drw->scheme[ColBg] = scheme[(BARBORDERS ? SchemeTabInactive : SchemeNorm)][ColBg];
+	w = TEXTW(text) - lrpad;
+	drw_text(drw, x, BARBORDERS == 1 ? -1 : 0, w, bh, 0, text, 0);
+	x += w;
 
-	/* process status text */
-	i = -1;
-	while (text[++i]) {
-		if (text[i] == '^' && !isCode) {
-			isCode = 1;
-
-			text[i] = '\0';
-			w = TEXTW(text) - lrpad;
-			drw_text(drw, x, BARBORDERS == 1 ? -1 : 0, w, bh, 0, text, 0);
-
-			x += w;
-
-			/* process code */
-			while (text[++i] != '^') {
-				if (text[i] == 'c') {
-					char buf[8];
-					if (i + 7 >= len) {
-						i += 7;
-						len = 0;
-						break;
-					}
-					memcpy(buf, (char*)text+i+1, 7);
-					buf[7] = '\0';
-					drw_clr_create(drw, &drw->scheme[ColFg], buf, alphas[(BARBORDERS ? SchemeTabInactive : SchemeNorm)][ColFg]);
-					i += 7;
-				} else if (text[i] == 'b') {
-					char buf[8];
-					if (i + 7 >= len) {
-						i += 7;
-						len = 0;
-						break;
-					}
-					memcpy(buf, (char*)text+i+1, 7);
-					buf[7] = '\0';
-					drw_clr_create(drw, &drw->scheme[ColBg], buf, alphas[(BARBORDERS ? SchemeTabInactive : SchemeNorm)][ColBg]);
-					i += 7;
-				} else if (text[i] == 'd') {
-					drw->scheme[ColFg] = scheme[(BARBORDERS ? SchemeTabInactive : SchemeNorm)][ColFg];
-					drw->scheme[ColBg] = scheme[(BARBORDERS ? SchemeTabInactive : SchemeNorm)][ColBg];
-				} else if (text[i] == 'r') {
-					int rx = atoi(text + ++i);
-					while (text[++i] != ',');
-					int ry = atoi(text + ++i);
-					while (text[++i] != ',');
-					int rw = atoi(text + ++i);
-					while (text[++i] != ',');
-					int rh = atoi(text + ++i);
-
-					if (ry < 0)
-						ry = 0;
-					if (rx < 0)
-						rx = 0;
-
-					drw_rect(drw, rx + x, ry, rw, rh, 1, 0);
-				} else if (text[i] == 'f') {
-					x += atoi(text + ++i);
-				}
-			}
-
-			text = text + i + 1;
-			len -= i + 1;
-			i = -1;
-			isCode = 0;
-			if (len <= 0)
-				break;
-		}
+	if (BARBORDERS == 1 && statuslastblock == 1 && x - sep > 0) {
+		XSetForeground(drw->dpy, drw->gc,scheme[SchemeTabInactive][ColBorder].pixel);
+		XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep, 0, 1, bh - 1);
+		XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep, 0, x - sep + lrpad/2 - 1, 1);
+		XSetForeground(drw->dpy, drw->gc,scheme[SchemeNorm][ColBorder].pixel);
+		XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep, bh - 1, x - sep + lrpad/2 - 1, 1);
+		XFillRectangle(drw->dpy, drw->drawable, drw->gc, x + lrpad/2 - 1, 1, 1, bh - 2);
+		XFillRectangle(drw->dpy, drw->drawable, drw->gc, x + lrpad/2 - 2, bh - 2, 1, 1);
 	}
 	drw_rect(drw, x, 0, selmon->ww - x, bh, 1, 1);
-	if (!isCode && len > 0) {
-		w = TEXTW(text) - lrpad;
-		drw_text(drw, x, BARBORDERS == 1 ? -1 : 0, w, bh, 0, text, 0);
-		x += w;
-	}
-	free(p);
 
-	if (BARBORDERS == 1 && len > 1) {
-		int sep = 0, block = 0;
-		char ch;
-		i = 0;
-		while (stext[++i]) {
-			if ((unsigned char)stext[i] < ' ') {
-				ch = stext[i];
-				stext[i] = '\0';
-				block = status2dtextlength(stext);
-				if (block > 0) {
-					XSetForeground(drw->dpy, drw->gc,scheme[SchemeTabInactive][ColBorder].pixel);
-					XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep, 0, 1, bh - 1);
-					XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep, 0, block - 1, 1);
-					XSetForeground(drw->dpy, drw->gc,scheme[SchemeNorm][ColBorder].pixel);
-					XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep + block - 1, 0, 1, bh - 1);
-					XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep + block - 2, bh - 2, 1, 1);
-					XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep, bh - 1, block, 1);
-				}
-				sep += block;
-				stext[i] = ch;
-				stext += i+1;
-				i = -1;
-			}
-		}
-		if (statuslastblock == 1 && x - sep > 0) {
-			XSetForeground(drw->dpy, drw->gc,scheme[SchemeTabInactive][ColBorder].pixel);
-			XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep, 0, 1, bh - 1);
-			XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep, 0, x - sep + lrpad/2 - 1, 1);
-			XSetForeground(drw->dpy, drw->gc,scheme[SchemeNorm][ColBorder].pixel);
-			XFillRectangle(drw->dpy, drw->drawable, drw->gc, sep, bh - 1, x - sep + lrpad/2 - 1, 1);
-			XFillRectangle(drw->dpy, drw->drawable, drw->gc, x + lrpad/2 - 1, 1, 1, bh - 2);
-			XFillRectangle(drw->dpy, drw->drawable, drw->gc, x + lrpad/2 - 2, bh - 2, 1, 1);
-		}
-	}
+	free(p);
 
 	drw_map(drw, m->ebarwin, 0, 0, m->ww, bh);
 }
@@ -1317,7 +1344,7 @@ expose(XEvent *e)
 
 	if (ev->count == 0 && (m = wintomon(ev->window))) {
 		drawbar(m);
-		drawebar(rawstext, m);
+		drawebar(rawstext, m, 0);
 		if (showsystray && m == selmon)
 			updatesystray();
 	}
@@ -1739,6 +1766,20 @@ motionnotify(XEvent *e)
 		focus(NULL);
 	}
 	mon = m;
+	if (abs(selmon->showebar) == 1 && ((topbar && ev->y < bh) || (!topbar && ev->y > m->mh - bh))) {
+		Client *c;
+		c = selmon->sel;
+		if(c && c->isactfullscreen)
+			return;
+		if ((!eblock && !esep) || ev->x < esep || ev->x > esep + eblock) {
+			eblock = esep = 0;
+			drawebar(rawstext, m, ev->x);
+		} else
+			return;
+	} else if (eblock) {
+		eblock = esep = 0;
+		drawebar(rawstext, m, 0);
+	}
 }
 
 void
@@ -3047,7 +3088,7 @@ updatestatus(void)
 		strcpy(stext, "dwm-"VERSION);
 	else
 		copyvalidchars(stext, rawstext);
-	drawebar(rawstext, selmon);
+	drawebar(rawstext, selmon, 0);
 }
 
 void
