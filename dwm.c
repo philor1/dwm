@@ -101,7 +101,7 @@
 
 /* enums */
 enum { Manager, Xembed, XembedInfo, XLast }; /* Xembed atoms */
-enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
+enum { CurNormal, CurResize, CurMove, CurResizeHorzArrow, CurResizeVertArrow, CurLast }; /* cursor */
 enum { SchemeBar, SchemeTag, SchemeBorder, SchemeFocus, SchemeUnfocus }; /* color schemes */
 enum { NetSupported, NetSystemTray, NetSystemTrayOP, NetSystemTrayOrientation, NetSystemTrayVisual,
 	   NetWMName, NetWMState, NetWMFullscreen, NetActiveWindow, NetWMWindowType, NetWMWindowTypeDock,
@@ -181,6 +181,7 @@ struct Monitor {
 	int mx, my, mw, mh;   /* screen size */
 	int wx, wy, ww, wh;   /* window area  */
 	int gappx;            /* gaps between windows */
+	int dragon;
 	unsigned int seltags;
 	unsigned int sellt;
 	unsigned int tagset[2];
@@ -256,6 +257,7 @@ static void destroynotify(XEvent *e);
 static void detach(Client *c);
 static void detachstack(Client *c);
 static Monitor *dirtomon(int dir);
+static void dragfact(const Arg *arg);
 static void drawebar(char *text, Monitor *m, int xpos);
 static void drawbar(Monitor *m);
 static void drawbars(void);
@@ -441,6 +443,8 @@ static int dwmblockssig;
 pid_t dwmblockspid = 0;
 
 unsigned int esep = 0, eblock = 0;
+unsigned int xbutt, ybutt;
+unsigned int dragon;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -544,7 +548,9 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, int *bw, int interact)
 		*h = bh;
 	if (*w < bh)
 		*w = bh;
-	if ((resizehints && m->gappx > resizehintsbm * borderpx && m ->lt[m->sellt]->arrange != monocle) || c->isfloating || !c->mon->lt[c->mon->sellt]->arrange) {
+	if ((resizehints && m->dragon != 1 && m->gappx > resizehintsbm * borderpx && m ->lt[m->sellt]->arrange != monocle)
+			|| c->isfloating
+			|| !c->mon->lt[c->mon->sellt]->arrange) {
 		/* see last two sentences in ICCCM 4.1.2.3 */
 		baseismin = c->basew == c->minw && c->baseh == c->minh;
 		savew = *w;
@@ -768,6 +774,8 @@ buttonpress(XEvent *e)
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
 		click = ClkClientWin;
 	}
+	xbutt = ev->x;
+	ybutt = ev->y;
 	for (i = 0; i < LENGTH(buttons); i++)
 		if (click == buttons[i].click && buttons[i].func && buttons[i].button == ev->button
 		&& CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state))
@@ -1036,6 +1044,7 @@ createmon(void)
     m->showebar = showebar;
 	m->topbar = topbar;
 	m->gappx = gappx;
+	m->dragon = dragon;
 	m->lt[0] = &layouts[0];
 	m->lt[1] = &layouts[1 % LENGTH(layouts)];
 	strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
@@ -1127,6 +1136,233 @@ dirtomon(int dir)
 	else
 		for (m = mons; m->next != selmon; m = m->next);
 	return m;
+}
+
+void
+dragfact(const Arg *arg)
+{
+	unsigned int n, i;
+	int horizontal = 0, mirror = 0;	// layout configuration
+	int am = 0, as = 0, ams = 0;	// choosen area
+	float fact;
+	float mfactp = 0, mfactn = 0, sfactp = 0, sfactn = 0;
+
+	Monitor *m;
+	m = selmon;
+	XEvent ev;
+	Time lasttime = 0;
+
+	Client *c, *s, *mn, *mp, *sn, *sp;
+	int gapp = m->gappx;
+
+	for (n = 0, c = s = mn = mp = sn = sp = nexttiled(m->clients); c; c = nexttiled(c->next), n++) {
+		if (n == m->nmaster)
+			s = c;
+	}
+
+	if (!n)
+		return;
+	else if (m->lt[m->sellt]->arrange == &tile) {
+		int layout = m->ltaxis[0];
+		if (layout < 0) {
+			mirror = 1;
+			layout *= -1;
+		}
+		if (layout == 2)
+			horizontal = 1;
+	}
+
+	/* do not allow fact to be modified under certain conditions */
+	if (!m->lt[m->sellt]->arrange							// floating layout
+		|| (m->nmaster && n <= m->nmaster)					// only master
+		|| m->lt[m->sellt]->arrange == &monocle				// monocle
+		|| n == 1 || n == 0									// one client
+	)
+		return;
+
+	if (xbutt <= m->wx + gapp || xbutt >= m->wx + m->ww - gapp || ybutt <= m->wy + gapp || ybutt >= m->wy + m->wh - gapp)
+		return;
+	fact = mirror ? 1.0 - m->mfact : m->mfact;
+
+	if (horizontal) {
+		if (ybutt <= m->wy + (m->wh - gapp) * fact + gapp + 2 && ybutt >= m->wy + (m->wh - gapp) * fact - 2)
+			ams = 1;
+		else if ((ybutt < m->wy + (m->wh - gapp) * fact - 2 && mirror == 0) || (ybutt > m->wy + (m->wh - gapp) * fact + gapp + 2 && mirror == 1))
+			am = m->ltaxis[1] != 3 && m->nmaster > 1 ? 1 : 0;
+		else if ((ybutt < m->wy + (m->wh - gapp) * fact - 2 && mirror == 1) || (ybutt > m->wy + (m->wh - gapp) * fact + gapp + 2 && mirror == 0))
+			as = m->ltaxis[2] != 3 && n - m->nmaster > 1 ? 1 : 0;
+	} else {
+		if (xbutt <= m->wx + (m->ww - gapp) * fact + gapp + 2 && xbutt >= m->wx + (m->ww - gapp) * fact - 2)
+			ams = 1;
+		else if ((xbutt < m->wx + (m->ww - gapp) * fact - 2 && mirror == 0) || (xbutt > m->wx + (m->ww - gapp) * fact + gapp + 2 && mirror == 1))
+			am = m->ltaxis[1] != 3 && m->nmaster > 1 ? 1 : 0;
+		else if ((xbutt < m->wx + (m->ww - gapp) * fact - 2 && mirror == 1) || (xbutt > m->wx + (m->ww - gapp) * fact + gapp + 2 && mirror == 0))
+			as = m->ltaxis[2] != 3 && n - m->nmaster > 1 ? 1 : 0;
+	}
+
+	if (ams + am + as == 0)
+		return;
+
+	if (as == 1 || (ams == 1 && m->ltaxis[0] != m->ltaxis[2] && m->ltaxis[2] != 3)) {
+		int cy_pos = m->wy + gapp;
+		int cx_pos = m->wx + gapp;
+		for(i = 0, c = s; c; c = nexttiled(c->next), i++) {
+			if ((m->ltaxis[2] == 2) ? (ybutt > cy_pos && ybutt < c->y) : (xbutt > cx_pos && xbutt < c->x)) {
+				sn = c;
+				sfactn = c->cfact;
+				as = 2;
+				break;
+			}
+			cy_pos += c->h;
+			cx_pos += c->w;
+			sp = c;
+			sfactp = c->cfact;
+		}
+	}
+
+	if (am == 1 || (ams == 1 && m->ltaxis[0] != m->ltaxis[1] && m->ltaxis[1] != 3)) {
+		int cy_pos = m->wy + gapp;
+		int cx_pos = m->wx + gapp;
+		for(i = 0, c = nexttiled(m->clients); i < m->nmaster; c = nexttiled(c->next), i++) {
+			if ((m->ltaxis[1] == 2) ? (ybutt > cy_pos && ybutt < c->y) : (xbutt > cx_pos && xbutt < c->x)) {
+				mn = c;
+				mfactn = c->cfact;
+				am = 2;
+				break;
+			}
+			cy_pos += c->h;
+			cx_pos += c->w;
+			mp = c;
+			mfactp = c->cfact;
+		}
+	}
+
+	if (reshintsoffondrag == 1) {
+		m->dragon = 1;
+		for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++) {
+			resize(c, c->x, c->y, c->w, c->h, c->bw, 0);
+			focus(c);
+		}
+		arrange(selmon);
+		if (ams == 1) {
+			if (horizontal) {
+				XWarpPointer(dpy, None, root, 0, 0, 0, 0, xbutt, m->wy + (int) ((float) (m->wh - gapp) * fact) + gapp/2);
+				ybutt = m->wy + (int) ((float) (m->wh - gapp) * fact) + gapp/2;
+			} else {
+				XWarpPointer(dpy, None, root, 0, 0, 0, 0, m->wx + (int) ((float) (m->ww - gapp) * fact) + gapp/2, ybutt);
+				xbutt = m->wx + (int) ((float) (m->ww - gapp) * fact) + gapp/2;
+			}
+		}
+		if (am == 2) {
+			if (m->ltaxis[1] == 2) {
+				XWarpPointer(dpy, None, root, 0, 0, 0, 0, xbutt, mn->y - gapp/2);
+				ybutt = mn->y - gapp/2;
+			} else {
+				XWarpPointer(dpy, None, root, 0, 0, 0, 0, mn->y - gapp/2, ybutt);
+				xbutt = mn->y - gapp/2;
+			}
+		}
+		if (as == 2) {
+			if (m->ltaxis[2] == 2) {
+				XWarpPointer(dpy, None, root, 0, 0, 0, 0, xbutt, sn->y - gapp/2);
+				ybutt = sn->y - gapp/2;
+			} else {
+				XWarpPointer(dpy, None, root, 0, 0, 0, 0, sn->y - gapp/2, ybutt);
+				xbutt = sn->y - gapp/2;
+			}
+		}
+	}
+
+	int xold = xbutt;
+	int yold = ybutt;
+
+	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync, None,
+		cursor[(ams + as + am) == 1 ? horizontal ? CurResizeVertArrow : CurResizeHorzArrow
+		: am == 2 && (ams + as + am) == 2 ? (m->ltaxis[1] == 1) ? CurResizeHorzArrow : CurResizeVertArrow
+		: as == 2 && (ams + as + am) == 2 ? (m->ltaxis[2] == 1) ? CurResizeHorzArrow : CurResizeVertArrow
+		: CurResize]->cursor,
+		CurrentTime) != GrabSuccess)
+		return;
+
+	do {
+		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
+		switch(ev.type) {
+		case ConfigureRequest:
+		case Expose:
+		case MapRequest:
+			handler[ev.type](&ev);
+			break;
+		case MotionNotify:
+			if ((ev.xmotion.time - lasttime) <= (1000 / 60))
+				continue;
+			lasttime = ev.xmotion.time;
+
+			int diffx = ev.xmotion.x - xold;
+			int diffy = ev.xmotion.y - yold;
+
+			if (ams == 1) {
+				if (horizontal)
+					fact = (float) (diffy) / (float) (m->wh - 3 * gapp);
+				else
+					fact = (float) (diffx) / (float) (m->ww - 3 * gapp);
+				if (mirror)
+					fact = 1.0 - fact;
+				if (fact && m->mfact + fact < 0.9 && m->mfact + fact > 0.1)
+					selmon->mfact = selmon->pertag->mfacts[selmon->pertag->curtag] += fact;
+			}
+			if (as == 2) {
+				if (m->ltaxis[2] == 2) {
+					fact = (float) (diffy) * (float) (sfactn + sfactp) / (float) (sn->h + sp->h);
+					if ((sn->cfact - fact) > 0.25 && (sp->cfact + fact) > 0.25
+						&& (int) (ev.xmotion.y - ybutt) <= sn->h && (int) (ybutt - ev.xmotion.y) <= sp->h) {
+							sn->cfact -= fact;
+							sp->cfact += fact;
+					}
+				} else {
+					fact = (float) (diffx) * (float) (sfactn + sfactp) / (float) (sn->w + sp->w);
+					if ((sn->cfact - fact) > 0.25 && (sp->cfact + fact) > 0.25
+						&& (int) (ev.xmotion.x - xbutt) <= sn->w && (int) (xbutt - ev.xmotion.x) <= sp->w) {
+							sn->cfact -= fact;
+							sp->cfact += fact;
+					}
+				}
+			}
+			if (am == 2) {
+				if (m->ltaxis[1] == 2) {
+					fact = (float) (diffy) * (float) (mfactn + mfactp) / (float) (mn->h + mp->h);
+					if ((mn->cfact - fact) > 0.25 && (mp->cfact + fact) > 0.25
+						&& (int) (ev.xmotion.y - ybutt) <= mn->h && (int) (ybutt - ev.xmotion.y) <= mp->h) {
+							mn->cfact -= fact;
+							mp->cfact += fact;
+					}
+				} else {
+					fact = (float) (diffx) * (float) (mfactn + mfactp) / (float) (mn->w + mp->w);
+					if ((mn->cfact - fact) > 0.25 && (mp->cfact + fact) > 0.25
+						&& (int) (ev.xmotion.x - xbutt) <= mn->w && (int) (xbutt - ev.xmotion.x) <= mp->w) {
+							mn->cfact -= fact;
+							mp->cfact += fact;
+					}
+				}
+			}
+			arrange(selmon);
+			xold = ev.xmotion.x;
+			yold = ev.xmotion.y;
+			break;
+		}
+	} while (ev.type != ButtonRelease);
+
+	XUngrabPointer(dpy, CurrentTime);
+	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
+
+	if (reshintsoffondrag == 1) {
+		m->dragon = 0;
+		for (c = nexttiled(selmon->clients); c; c = nexttiled(c->next)) {
+			resize(c, c->x, c->y, c->w, c->h, c->bw, 0);
+			focus(c);
+		}
+		arrange(selmon);
+		arrangemon(selmon);
+	}
 }
 
 void
@@ -3236,6 +3472,8 @@ setup(void)
 	cursor[CurNormal] = drw_cur_create(drw, XC_left_ptr);
 	cursor[CurResize] = drw_cur_create(drw, XC_sizing);
 	cursor[CurMove] = drw_cur_create(drw, XC_fleur);
+	cursor[CurResizeHorzArrow] = drw_cur_create(drw, XC_sb_h_double_arrow);
+	cursor[CurResizeVertArrow] = drw_cur_create(drw, XC_sb_v_double_arrow);
 	/* init appearance */
 	scheme = ecalloc(LENGTH(colors) + 1, sizeof(Clr *));
 	scheme[LENGTH(colors)] = drw_scm_create(drw, colors[0], alphas[0], 4);
