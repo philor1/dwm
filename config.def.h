@@ -1,16 +1,14 @@
 /* See LICENSE file for copyright and license details. */
 
-#define BARTABGROUPS_BORDERS 1         // 0 = disable, 1 = enable
-#define BARTABGROUPS_BOTTOMBORDER 0    // 0 = disable, 1 = enable
+#define BARBORDERS 1                   // 0 = disable, 1 = enable
 #define BARTABGROUPS_FUZZPX 12         // # pixels cutoff between bartab groups to merge (e.g. max gaps px)
-#define BARTABGROUPS_FLOATINDICATOR 1  // 0 = disable, 1 = enable
-#define BARTABGROUPS_FLOATPX 5         // # pixels for float box indicator
 #define BARTABGROUPS_TAGSINDICATOR 1   // 0 = disable, 1 = enable when >1 client or view tag, 2 = enable always
 #define BARTABGROUPS_TAGSPX 5          // # pixels for tag grid boxes
 #define BARTABGROUPS_TAGSROWS 2        // # rows in tag grid
-#define BARTABGROUPS_INDICATORSPADPX 2 // # pixels from l/r to pad float/tags indicators
+#define BARTABGROUPS_INDICATORSPADPX 2 // # pixels from l/r to pad tags indicators
 
 /* appearance */
+static const int statuslastblock    = 1;        /* 1 means last item in statusbar is displayed as block */
 static const unsigned int gappx     = 4;        /* gaps between windows */
 static const unsigned int borderpx  = 2;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
@@ -21,6 +19,7 @@ static const unsigned int systraypinning = 0;   /* 0: sloppy systray follows sel
 static const unsigned int systrayspacing = 0;   /* systray spacing */
 static const int systraypinningfailfirst = 1;   /* 1: if pinning fails, display systray on the first monitor, False: display systray on the last monitor*/
 static const int showsystray             = 1;   /* 0 means no systray */
+static const int oneclientdimmer    = 0;        /* 1 makes tab for one client in unfocused color... */
 static const char *fonts[]          = { "monospace:size=10" };
 static const char dmenufont[]       = "monospace:size=10";
 static const char col_gray1[]       = "#222222";
