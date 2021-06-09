@@ -197,9 +197,9 @@ static void destroynotify(XEvent *e);
 static void detach(Client *c);
 static void detachstack(Client *c);
 static Monitor *dirtomon(int dir);
+static void drawebar(char *text, Monitor *m);
 static void drawbar(Monitor *m);
 static void drawbars(void);
-static int drawstatusbar(int x, char *text);
 static void enternotify(XEvent *e);
 static void expose(XEvent *e);
 static void focus(Client *c);
@@ -949,8 +949,6 @@ drawbar(Monitor *m)
 		}
 	}
 	drw_map(drw, m->barwin, 0, 0, m->ww - stw, bh);
-	drawstatusbar(0, rawstext);
-	drw_map(drw, m->ebarwin, 0, 0, m->ww, bh);
 
 	if (showsystray) {
 		/* Clear status bar to avoid artifacts beneath systray icons */
@@ -972,10 +970,11 @@ drawbars(void)
 		drawbar(m);
 }
 
-int
-drawstatusbar(int x, char* stext)
+void
+drawebar(char* stext, Monitor *m)
 {
 	int i, w, len;
+	int x = 0;
 	short isCode = 0;
 	char *text;
 	char *p;
@@ -1067,7 +1066,7 @@ drawstatusbar(int x, char* stext)
 
 	drw_setscheme(drw, scheme[SchemeNorm]);
 
-	return x;
+	drw_map(drw, m->ebarwin, 0, 0, m->ww, bh);
 }
 
 void
@@ -1097,6 +1096,7 @@ expose(XEvent *e)
 
 	if (ev->count == 0 && (m = wintomon(ev->window))) {
 		drawbar(m);
+		drawebar(rawstext, m);
 		if (showsystray && m == selmon)
 			updatesystray();
 	}
@@ -2826,9 +2826,7 @@ updatestatus(void)
 		strcpy(stext, "dwm-"VERSION);
 	else
 		copyvalidchars(stext, rawstext);
-	drawbar(selmon);
-	if (showsystray)
-		updatesystray();
+	drawebar(rawstext, selmon);
 }
 
 void
