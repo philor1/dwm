@@ -401,6 +401,7 @@ static int bh, blw = 0;      /* bar geometry */
 static int lrpad;            /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static unsigned int numlockmask = 0;
+static int istatustimer = 0;
 static int riodimensions[4] = { -1, -1, -1, -1 };
 static pid_t riopid = 0;
 static void (*handler[LASTEvent]) (XEvent *) = {
@@ -4477,10 +4478,22 @@ updatesizehints(Client *c)
 void
 updatestatus(void)
 {
+	int now;
 	if (!gettextprop(root, XA_WM_NAME, rawstext, sizeof(rawstext)))
-		strcpy(stext, "dwm-"VERSION);
-	else
-		copyvalidchars(stext, rawstext);
+		strcpy(rawstext, "dwm-"VERSION);
+	else {
+		now = time(NULL);
+		if (strncmp(istatusclose, rawstext, strlen(istatusclose)) == 0) {
+			istatustimer = 0;
+			return;
+		} else if (strncmp(istatusprefix, rawstext, strlen(istatusprefix)) == 0) {
+			istatustimer = now;
+			copyvalidchars(rawstext, rawstext + sizeof(char) * strlen(istatusprefix) );
+		} else if (now == -1 || now - istatustimer > istatustimeout) {
+			copyvalidchars(stext, rawstext);
+		} else
+			return;
+	}
 	drawebar(rawstext, selmon, 0);
 }
 
