@@ -1650,29 +1650,13 @@ drawbartabgroups(Monitor *m, int x, int stw, int passx) {
 	}
 
 	// Draw
-	if (BARBORDERS == 1) {
-		int n;
-		for(n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
-		if (n == 0) {
-			char bartext[256];
-			strcpy(bartext, "dwm-"VERSION);
-			drw_setscheme(drw, scheme[SchemeUnfocus]);
-			drw_text(drw, x, 0, m->ww - stw - x, bh - 1, lrpad / 2, bartext, 0);
-			XSetForeground(drw->dpy, drw->gc,scheme[SchemeUnfocus][ColFloat].pixel);
-			XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, 0, 1, bh - 1);
-			XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, 0, m->mw - x - stw - 1, 1);
-			XSetForeground(drw->dpy, drw->gc,scheme[SchemeBar][ColBorder].pixel);
-			XFillRectangle(drw->dpy, drw->drawable, drw->gc, m->mw - stw - 1, 1, 1, bh - 2);
-			XFillRectangle(drw->dpy, drw->drawable, drw->gc, m->mw - stw - 2, bh - 2, 1, 1);
-			XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, bh - 1, m->mw - x - stw - 1, 1);
-		} else {
-			drw_setscheme(drw, scheme[SchemeUnfocus]);
-			drw_rect(drw, x, 0, m->ww - stw - x, bh - 1, 1, 1);
-		}
-	} else {
+
+	if (BARBORDERS == 1)
+		drw_setscheme(drw, scheme[SchemeUnfocus]);
+	else
 		drw_setscheme(drw, scheme[SchemeBar]);
-		drw_rect(drw, x, 0, m->ww - stw - x, bh, 1, 1);
-	}
+	drw_rect(drw, x, 0, m->ww - stw - x, bh, 1, 1);
+
 	for (c = m->clients; c; c = c->next) {
 		if (!ISVISIBLE(c) || (c->isfloating)) continue;
 		for (tg = tg_head; tg && tg->x != c->x - m->mx && tg->next; tg = tg->next);
