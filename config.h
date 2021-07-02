@@ -8,7 +8,6 @@
 
 /* See LICENSE file for copyright and license details. */
 
-#define BARBORDERS 1                   // 0 = disable, 1 = enable
 #define BARTABGROUPS_FUZZPX 5          // # pixels cutoff between bartab groups to merge (e.g. max gaps px)
 #define BARTABGROUPS_TAGSINDICATOR 1   // 0 = disable, 1 = enable when >1 client or view tag, 2 = enable always
 #define BARTABGROUPS_TAGSPX 5          // # pixels for tag grid boxes
@@ -16,6 +15,9 @@
 #define BARTABGROUPS_INDICATORSPADPX 2 // # pixels from l/r to pad tags indicators
 
 /* appearance */
+static const int bartheme           = 1;        /* 0 = off, 1 = on */
+static const int statustheme        = 2;        /* 0 = classic, 1 = button-theme, 2 = float-theme */
+static const int tabbartheme        = 2;        /* 0 = classic, 1 = button-theme, 2 = float-theme */
 static const unsigned int gappx     = 10;       /* gaps between windows */
 static const unsigned int borderpx  = 1;        /* border pixel of windows */
 static const unsigned int snap      = 10;       /* snap pixel */
@@ -27,7 +29,7 @@ static const int swallowfloating    = 1;        /* 1 means swallow floating wind
 static const int showbar            = 1;        /* 0 means no bar */
 static const int showebar           = 1;        /* 0 means no extra bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
-static const int statuslastblock    = 0;        /* 1 means last item in statusbar is displayed as block */
+static const int statuslastblock    = 1;        /* 1 means last item in statusbar is displayed as block */
 static const int notileborder       = 1;        /* 1 disables tiled borders for non-small gaps */
 static const int oneclientdimmer    = 1;        /* 1 makes tab for one client in unfocused color... */
 static const int istatustimeout     = 5;              /* max timeout before displaying regular status after istatus */
@@ -57,6 +59,10 @@ static char brd_fg[]		= "#eeeeee";
 static char brd_bg[]		= "#222222";
 static char brd_brd[]		= "#444444";
 static char brd_flo[]		= "#444444";
+static char sel_fg[]		= "#eeeeee";
+static char sel_bg[]		= "#005577";
+static char sel_brd[]		= "#444444";
+static char sel_flo[]		= "#bbbbbb";
 static char foc_fg[]		= "#222222";
 static char foc_bg[]		= "#eeeeee";
 static char foc_brd[]		= "#444444";
@@ -72,6 +78,7 @@ static char *colors[][4] = {
     [SchemeBar] =		{ bar_fg,		bar_bg,		bar_brd,	bar_flo		},
     [SchemeTag] =		{ tag_fg,		tag_bg,		tag_brd,	tag_flo		},
     [SchemeBorder] =	{ brd_fg,		brd_bg,		brd_brd,	brd_flo		},
+    [SchemeSelect] =	{ sel_fg,		sel_bg,		sel_brd,	sel_flo		},
     [SchemeFocus] =		{ foc_fg,		foc_bg,		foc_brd,	foc_flo		},
     [SchemeUnfocus] =	{ unf_fg,		unf_bg,		unf_brd,	unf_flo  	}
 };
@@ -80,6 +87,7 @@ static const float alphas[][4] = {
     [SchemeBar] =		{ OPAQUE,		OPAQUE,		OPAQUE,		OPAQUE		},
     [SchemeTag] =		{ OPAQUE,		OPAQUE,		OPAQUE,		OPAQUE		},
     [SchemeBorder] =	{ OPAQUE,		OPAQUE,		OPAQUE,		OPAQUE		},
+    [SchemeSelect] =	{ OPAQUE,		OPAQUE,		OPAQUE,		OPAQUE		},
     [SchemeFocus] =		{ OPAQUE,		OPAQUE,		OPAQUE,		OPAQUE		},
     [SchemeUnfocus] =	{ OPAQUE,		OPAQUE,		OPAQUE,		OPAQUE		}
 };
