@@ -12,6 +12,7 @@ static const int statuslastblock    = 1;        /* 1 means last item in statusba
 static const unsigned int gappx     = 4;        /* gaps between windows */
 static const unsigned int borderpx  = 2;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
+static const int swallowfloating    = 0;        /* 1 means swallow floating windows by default */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int showebar           = 1;        /* 0 means no extra bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
@@ -20,6 +21,12 @@ static const unsigned int systrayspacing = 0;   /* systray spacing */
 static const int systraypinningfailfirst = 1;   /* 1: if pinning fails, display systray on the first monitor, False: display systray on the last monitor*/
 static const int showsystray             = 1;   /* 0 means no systray */
 static const int oneclientdimmer    = 0;        /* 1 makes tab for one client in unfocused color... */
+static const char slopspawnstyle[]  = "-t 0 -c 0.92,0.85,0.69,0.3 -o"; /* do NOT define -f (format) here */
+static const char slopresizestyle[] = "-t 0 -c 0.92,0.85,0.69,0.3"; /* do NOT define -f (format) here */
+static const int riodraw_borders    = 0;        /* 0 or 1, indicates whether the area drawn using slop includes the window borders */
+static const int riodraw_matchpid   = 1;        /* 0 or 1, indicates whether to match the PID of the client that was spawned with riospawn */
+static const int riodraw_spawnasync = 0;        /* 0 means that the application is only spawned after a successful selection while
+                                                 * 1 means that the application is being initialised in the background while the selection is made */
 static const char *fonts[]          = { "monospace:size=10" };
 static const char dmenufont[]       = "monospace:size=10";
 static const char col_gray1[]       = "#222222";
@@ -69,9 +76,11 @@ static const Rule rules[] = {
 	 *	WM_CLASS(STRING) = instance, class
 	 *	WM_NAME(STRING) = title
 	 */
-	/* class      instance    title       tags mask     switchtotag    isfloating   monitor */
-	{ "Gimp",     NULL,       NULL,       0,            0,             1,           -1 },
-	{ "Firefox",  NULL,       NULL,       1 << 8,       0,             0,           -1 },
+	/* class     instance  title           tags mask  switchtotag  isfloating  isterminal  noswallow  monitor */
+	{ "Gimp",    NULL,     NULL,           0,         0,           1,          0,           0,        -1 },
+	{ "Firefox", NULL,     NULL,           1 << 8,    0,           0,          0,          -1,        -1 },
+	{ "st",      NULL,     NULL,           0,         0,           0,          1,          -1,        -1 },
+	{ NULL,      NULL,     "Event Tester", 0,         0,           1,          0,           1,        -1 }, /* xev */
 };
 
 /* layout(s) */
@@ -118,6 +127,8 @@ static Key keys[] = {
 	{ MODKEY|ControlMask,           XK_b,      togglebar,      {0} },
 	{ MODKEY|ControlMask|ShiftMask, XK_b,      toggleebar,     {0} },
 	{ MODKEY,                       XK_n,      switchcol,      {0} },
+	{ MODKEY|ControlMask,           XK_Return, riospawn,       {.v = termcmd } },
+	{ MODKEY,                       XK_s,      rioresize,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_j,      inplacerotate,  {.i = +1} },
