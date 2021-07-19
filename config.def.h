@@ -76,11 +76,12 @@ static const Rule rules[] = {
 	 *	WM_CLASS(STRING) = instance, class
 	 *	WM_NAME(STRING) = title
 	 */
-	/* class     instance  title           tags mask  switchtotag  isfloating  isterminal  noswallow  monitor */
-	{ "Gimp",    NULL,     NULL,           0,         0,           1,          0,           0,        -1 },
-	{ "Firefox", NULL,     NULL,           1 << 8,    0,           0,          0,          -1,        -1 },
-	{ "st",      NULL,     NULL,           0,         0,           0,          1,          -1,        -1 },
-	{ NULL,      NULL,     "Event Tester", 0,         0,           1,          0,           1,        -1 }, /* xev */
+	/* class     instance  title           tags mask  switchtotag  isfloating  isterminal  noswallow  monitor  scratch key */
+	{ "Gimp",    NULL,     NULL,           0,         0,           1,          0,           0,        -1,      0    },
+	{ "Firefox", NULL,     NULL,           1 << 8,    0,           0,          0,          -1,        -1,      0    },
+	{ "St",      NULL,     NULL,           0,         0,           0,          1,           0,        -1,      0    },
+	{ NULL,      NULL,     "Event Tester", 0,         0,           1,          0,           1,        -1,      0    }, /* xev */
+	{ NULL,      NULL,     "scratchpad",   0,         0,           1,          1,          -1,        -1,     's'   },
 };
 
 /* layout(s) */
@@ -118,11 +119,15 @@ static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont,
 static const char *termcmd[]  = { "st", NULL };
 static const char *browser[] = { "luakit", NULL, NULL, NULL, "Luakit" };
 
+/*First arg only serves to match against key in rules*/
+static const char *scratchpadcmd[] = {"s", "st", "-t", "scratchpad", NULL};
+
 static Key keys[] = {
 	/* modifier                     key        function        argument */
 	{ MODKEY|ControlMask,           XK_w,      runorraise,     {.v = browser } },
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
+	{ MODKEY,                       XK_grave,  togglescratch,  {.v = scratchpadcmd } },
 	{ MODKEY,                       XK_b,      togglebars,     {0} },
 	{ MODKEY|ControlMask,           XK_b,      togglebar,      {0} },
 	{ MODKEY|ControlMask|ShiftMask, XK_b,      toggleebar,     {0} },
